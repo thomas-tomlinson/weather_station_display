@@ -4,102 +4,104 @@ from bs4 import BeautifulSoup as bs
 import os
 import requests, json, re, sys
 from time import strftime, ctime
-from PyQt6.QtCore import (Qt, QTimer, QTime)
+from PyQt6.QtCore import (Qt, QTimer, QTime, pyqtSignal, pyqtSlot)
 from PyQt6.QtGui import (QImage, QPixmap)
 #from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QGridLayout,)
 from PyQt6 import QtWidgets, QtCore, uic
 
 
-class PwsWeather:
+class PwsWeather(QtCore.QObject):
+    data = pyqtSignal(dict)
     def __init__(self):
+        QtCore.QThread.__init__(self)
+        self.timer = QtCore.QTimer(self)
+        self.running = True
+        self.signal = pyqtSignal(object)
+
+    def start_process(self):
+        self.do_it()
+        self.timer.timeout.connect(self.do_it)
+        self.timer.start(180000)
+
+    def do_it(self):
         #get the current pws weather live page
         page = requests.get('http://192.168.1.119/livedata.htm')
         soup = bs(page.text, 'html.parser')
         all_items = soup.find_all('input', attrs={'disabled':'disabled'})
 
         # data holder
-        self.data = {}
+        w_data = {}
 
         #find the data elements fron the horrific ambient weather live data
         for item in all_items:
-            self.data[item["name"]] = item["value"]
+            w_data[item["name"]] = item["value"]
+
+        w_data['update_time'] = ctime()
+        self.data.emit(w_data)
+
+    def stop(self):
+        self._isRunning = False
+    
+        
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Iniate the Weather class
-        weather = PwsWeather()
-        self.data = weather.data
-        
-        mw = uic.loadUi("mainwindow.ui", self)
-        #mw.outside_f.setText(weather.data['outTemp'] + '\u2109')
-        #mw.inside_f.setText(weather.data['inTemp'] + '\u2109') 
-        #mw.outside_humidity.setText(weather.data['outHumi'] + '%')
-        #mw.inside_humidify.setText(weather.data['inHumi'] + '%') 
+        #weather = PwsWeather()
+        #self.data = weather.data
+        self.mw = uic.loadUi("mainwindow.ui", self)
 
-        #mw.wind_direction.setText(weather.data['windir'] + '\u00ba')
-        #mw.wind_speed.setText('avg: ' + weather.data['avgwind'] + 'mph')
-        #mw.wind_gust.setText('gust: ' + weather.data['gustspeed'] + 'mph')
+        self.thread = QtCore.QThread(self)
+        self.pws = PwsWeather()
+        self.pws.data.connect(self.update_weather_data)
+        self.pws.moveToThread(self.thread)
+        self.thread.started.connect(self.pws.start_process)  
+        self.thread.start()
 
-        #mw.rel_pressure.setText(weather.data['RelPress'])
-        #mw.cur_datetime.setText(ctime())
-        #i = 0
-        #self.myvlabels = []
-        #hlabels = []
-        #for key, value in self.data.items():
-        #    self.myvlabels.append(value)
-        #    hlabels.append(key)
-        #    hlabels[i] = QLabel(f'<b>{key}</b>:')
-        #    hlabels[i].setStyleSheet('border: 1px solid lightgray; padding: 0 0 0 8;')
-        #    self.myvlabels[i] = QLabel(value)
-        #    self.myvlabels[i].setStyleSheet('border: 1px solid lightgray; padding 0 0 0 0;')
-        #    layout.addWidget(hlabels[i], i, 0)
-        #    layout.addWidget(self.myvlabels[i], i, 1)
-        #    i += 1
-
-
-        # add the sat image at the bottom
+        # add the initial satellite image 
         image = QImage()
         image.loadFromData(requests.get('https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg').content)
-        #img_label = QLabel()
-        mw.sat_image.setPixmap(QPixmap(image))
+        self.mw.sat_image.setPixmap(QPixmap(image))
 
         # clock update time
         clock_update_timer = QTimer(self)
         clock_update_timer.timeout.connect(self.update_clock)
         clock_update_timer.start(1000)
 
-        # weather data update timer
-        weather_update_timer = QTimer(self)
-        weather_update_timer.timeout.connect(self.update_weather_data)
-        weather_update_timer.start(30000)
+        # Sat image update, every 30 minutes
+        sat_update_timer = QTimer(self)
+        sat_update_timer.timeout.connect(self.update_sat_image)
+        sat_update_timer.start(1800000)
 
     def update_clock(self):
         self.cur_datetime.setText(ctime())
 
-    def update_weather_data(self):
+    def update_sat_image(self):
+        image = QImage()
+        image.loadFromData(requests.get('https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg').content)
+        self.mw.sat_image.setPixmap(QPixmap(image))
+
+    def closeEvent(self, event):
+        self.pws.stop()
+        self.thread.quit()
+        self.thread.wait()
+
+    @QtCore.pyqtSlot(object)
+    def update_weather_data(self, data):
         weather = PwsWeather()
-        self.outside_f.setText(weather.data['outTemp'] + '\u2109')
-        self.inside_f.setText(weather.data['inTemp'] + '\u2109') 
-        self.outside_humidity.setText(weather.data['outHumi'] + '%')
-        self.inside_humidify.setText(weather.data['inHumi'] + '%') 
+        self.outside_f.setText(data['outTemp'] + '\u2109')
+        self.inside_f.setText(data['inTemp'] + '\u2109') 
+        self.outside_humidity.setText(data['outHumi'] + '%')
+        self.inside_humidify.setText(data['inHumi'] + '%') 
 
-        self.wind_direction.setText(weather.data['windir'] + '\u00ba')
-        self.wind_speed.setText('avg: ' + weather.data['avgwind'] + 'mph')
-        self.wind_gust.setText('gust: ' + weather.data['gustspeed'] + 'mph')
+        self.wind_direction.setText(data['windir'] + '\u00ba')
+        self.wind_speed.setText('avg: ' + data['avgwind'] + 'mph')
+        self.wind_gust.setText('gust: ' + data['gustspeed'] + 'mph')
 
-        self.rel_pressure.setText(weather.data['RelPress'])
-
-    #def update(self):
-    #    weather = PwsWeather()
-    #    data = weather.data
-    #    i = 0
-    #    for val in data.values():
-    #        self.myvlabels[i].setText(val)
-    #        i += 1
-    def mousePressEvent(self, e):
-        print("mouse pressmove detected: ", e.button())
+        self.rel_pressure.setText(data['RelPress'])
+        self.update_time.setText('LU: ' + data['update_time'])
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
