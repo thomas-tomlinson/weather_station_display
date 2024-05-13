@@ -61,9 +61,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.thread.start()
 
         # add the initial satellite image 
-        image = QImage()
-        image.loadFromData(requests.get('https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg').content)
-        self.mw.sat_image.setPixmap(QPixmap(image))
+        self.update_sat_image()
+        #image = QImage()
+        #image.loadFromData(requests.get('https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg').content)
+        #self.mw.sat_image.setPixmap(QPixmap(image))
 
         # clock update time
         clock_update_timer = QTimer(self)
@@ -80,8 +81,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def update_sat_image(self):
         image = QImage()
-        image.loadFromData(requests.get('https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg').content)
-        self.mw.sat_image.setPixmap(QPixmap(image))
+        try:
+            sat_image = requests.get('https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg').content
+        except Exception as e:
+            sat_image = None
+            print('failed to retrieve satellite image, error:', e)
+        if sat_image is not None:
+            image.loadFromData(sat_image)
+            self.mw.sat_image.setPixmap(QPixmap(image))
 
     def closeEvent(self, event):
         self.pws.stop()
@@ -95,13 +102,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.inside_f.setText(data['inTemp'] + '\u2109') 
         self.outside_humidity.setText(data['outHumi'] + '%')
         self.inside_humidify.setText(data['inHumi'] + '%') 
-
         self.wind_direction.setText(data['windir'] + '\u00ba')
         self.wind_speed.setText('avg: ' + data['avgwind'] + 'mph')
         self.wind_gust.setText('gust: ' + data['gustspeed'] + 'mph')
-
         self.rel_pressure.setText(data['RelPress'])
-        self.update_time.setText('LU: ' + data['update_time'])
+
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
