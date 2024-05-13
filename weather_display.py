@@ -8,6 +8,7 @@ from PyQt6.QtCore import (Qt, QTimer, QTime, pyqtSignal, pyqtSlot)
 from PyQt6.QtGui import (QImage, QPixmap)
 #from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QGridLayout,)
 from PyQt6 import QtWidgets, QtCore, uic
+from MainWindow import Ui_MainWindow
 
 
 class PwsWeather(QtCore.QObject):
@@ -41,17 +42,11 @@ class PwsWeather(QtCore.QObject):
 
     def stop(self):
         self._isRunning = False
-    
-        
 
-class MainWindow(QtWidgets.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Iniate the Weather class
-        #weather = PwsWeather()
-        #self.data = weather.data
-        self.mw = uic.loadUi("mainwindow.ui", self)
+        super(MainWindow, self).__init__(*args, **kwargs)
+        self.setupUi(self)
 
         self.thread = QtCore.QThread(self)
         self.pws = PwsWeather()
@@ -62,9 +57,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # add the initial satellite image 
         self.update_sat_image()
-        #image = QImage()
-        #image.loadFromData(requests.get('https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg').content)
-        #self.mw.sat_image.setPixmap(QPixmap(image))
 
         # clock update time
         clock_update_timer = QTimer(self)
@@ -88,7 +80,7 @@ class MainWindow(QtWidgets.QMainWindow):
             print('failed to retrieve satellite image, error:', e)
         if sat_image is not None:
             image.loadFromData(sat_image)
-            self.mw.sat_image.setPixmap(QPixmap(image))
+            self.sat_image.setPixmap(QPixmap(image))
 
     def closeEvent(self, event):
         self.pws.stop()
@@ -97,12 +89,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(object)
     def update_weather_data(self, data):
-        weather = PwsWeather()
         self.outside_f.setText(data['outTemp'] + '\u2109')
         self.inside_f.setText(data['inTemp'] + '\u2109') 
         self.outside_humidity.setText(data['outHumi'] + '%')
         self.inside_humidify.setText(data['inHumi'] + '%') 
-        self.wind_direction.setText(data['windir'] + '\u00ba')
+        self.wind_direction.setValue(int(data['windir']))
         self.wind_speed.setText('avg: ' + data['avgwind'] + 'mph')
         self.wind_gust.setText('gust: ' + data['gustspeed'] + 'mph')
         self.rel_pressure.setText(data['RelPress'])

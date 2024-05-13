@@ -3,7 +3,6 @@ from PyQt6.QtCore import Qt
 
 
 class _Compass(QtWidgets.QWidget):
-    clickedValue = QtCore.pyqtSignal(int)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -18,6 +17,8 @@ class _Compass(QtWidgets.QWidget):
         self._padding = 4.0
         self._pointText = {0: "N", 45: "NE", 90: "E", 135: "SE", 180: "S",
             225: "SW", 270: "W", 315: "NW"}
+        #initialize the value 
+        self._value = 0
 
 
     def sizeHint(self):
@@ -26,41 +27,38 @@ class _Compass(QtWidgets.QWidget):
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
         side = min(painter.device().width(), painter.device().height())
+        side = side - 2
         painter.translate(painter.device().width() / 2, painter.device().height() / 2)
         painter.scale(side / 200.0, side / 200.0)
 
 
-        #painter = QtGui.QPainter(self)
         brush = QtGui.QBrush()
         brush.setColor(QtGui.QColor('black'))
-        #box_width = (painter.device().width() - 5)
-        #box_height = (painter.device().height() - 5)
         rect = QtCore.QRect(-100, -100, 200, 200)
-        #rect = QtCore.QRect(0, 0, 100, 100)
         painter.drawEllipse(rect)
-        #painter.drawEllipse(0, 0, 100, 100)
-        #painter.translate(50, 50)
-        #painter.translate((box_width / 2), (box_height / 2))
+
+
+        font = QtGui.QFont()
+        font_list = font.families()
+        print(font_list)
+        font.setPixelSize(20)
+        metrics = QtGui.QFontMetrics(font)
+        painter.setFont(font)
         painter.save()
         i = 0
         while i < 360:
         
             if i % 45 == 0:
                 painter.drawLine(0, -92, 0,-100)
-                painter.drawText(0, -70, self._pointText[i])
-                #painter.drawLine(0, 0, 0, -5)
-                #painter.drawLine(0, (box_height / 2), 0, (box_height /2 ) - 5)
+                text_center_offset = int(metrics.horizontalAdvance(self._pointText[i])/2.0)
+                painter.drawText(-text_center_offset, -70, self._pointText[i])
             else:
-                #painter.drawLine(0, (box_height / 2), 0, (box_height /2 ) - 5)
                 painter.drawLine(0, -95, 0, -100)
-                #painter.drawLine(0, 0, 0, -5)
-                #painter.drawLine(0, 50, 0, 45)
             painter.rotate(15)
             i += 15 
         painter.restore()
 
-        spinbox = self.parent()._spinbox
-        value = spinbox.value()
+        value = self._value
 
         #the pointer
         painter.save()
@@ -72,11 +70,16 @@ class _Compass(QtWidgets.QWidget):
             )
         painter.restore()
         painter.save()
-        painter.drawText(center, 0, str(value))
+        value_offset = int(metrics.horizontalAdvance(str(value))/2.0)
+        painter.drawText(-value_offset, 0, str(value))
         painter.restore()
         painter.end()
 
     def _trigger_refresh(self):
+        self.update()
+
+    def setValue(self, value):
+        self._value = value
         self.update()
 
 class WindDirection(QtWidgets.QWidget):
@@ -88,9 +91,9 @@ class WindDirection(QtWidgets.QWidget):
         self._compass = _Compass()
         layout.addWidget(self._compass)
 
-        self._spinbox = QtWidgets.QSpinBox()
-        self._spinbox.setMaximum(359)
-        layout.addWidget(self._spinbox)
-
         self.setLayout(layout)
-        self._spinbox.valueChanged.connect(self._compass._trigger_refresh)
+
+    @QtCore.pyqtSlot(int)
+    def setValue(self, value):
+        self._compass.setValue(value)
+
