@@ -16,10 +16,13 @@ class TimeInfo(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
 
         self._time_label = QtWidgets.QLabel()
+        self._time_label.setObjectName('time_label')
         layout.addWidget(self._time_label)
         self._time_values = QtWidgets.QLabel()
+        self._time_values.setWordWrap(True)
         layout.addWidget(self._time_values)
         self._suninfo_label = QtWidgets.QLabel()
+        self._suninfo_label.setObjectName('suninfo_label')
         layout.addWidget(self._suninfo_label)
         self._suninfo_values = QtWidgets.QLabel()
         layout.addWidget(self._suninfo_values)
@@ -37,7 +40,7 @@ class TimeInfo(QtWidgets.QWidget):
         self._suninfo_label.setFont(font)
         self._suninfo_label.setText('SUNRISE / SUNSET')
         # time small
-        font.setPointSize(25)
+        font.setPointSize(20)
         self._time_values.setFont(font)
         
         #large data display

@@ -15,10 +15,12 @@ class BarRainfall(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
 
         self._bar_label = QtWidgets.QLabel()
+        self._bar_label.setObjectName('bar_label')
         layout.addWidget(self._bar_label)
         self._bar_values = QtWidgets.QLabel()
         layout.addWidget(self._bar_values)
         self._rain_label = QtWidgets.QLabel()
+        self._rain_label.setObjectName('rain_label')
         layout.addWidget(self._rain_label)
         self._rain_values = QtWidgets.QLabel()
         layout.addWidget(self._rain_values)
@@ -32,12 +34,12 @@ class BarRainfall(QtWidgets.QWidget):
         font = self.font()
         font.setPointSize(10)
         self._bar_label.setFont(font)
-        self._bar_label.setText('BAROMETRIC PRESSURE')
+        self._bar_label.setText('BAROMETER')
         self._rain_label.setFont(font)
-        self._rain_label.setText('LAST 24HOUR RAINFALL')
+        self._rain_label.setText('RAINFALL')
 
         #large data display
-        font.setPointSize(50)
+        font.setPointSize(40)
         self._bar_values.setFont(font)
         self._rain_values.setFont(font)
 

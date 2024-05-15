@@ -1,0 +1,14 @@
+QLabel#in_label, QLabel#out_label, QLabel#bar_label, QLabel#rain_label, QLabel#time_label, QLabel#suninfo_label {
+    color: red;
+    font-size: 15px;
+}
+
+QLabel {
+    font-size: 20px;
+}
+
+* {
+    background-color: black;
+    color: white;
+    font-family: "Bruno Ace";
+}

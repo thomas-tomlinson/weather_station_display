@@ -1,6 +1,6 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import Qt
-
+import sys
 
 class _Compass(QtWidgets.QWidget):
 
@@ -95,3 +95,8 @@ class WindDirection(QtWidgets.QWidget):
     def setValue(self, value):
         self._compass.setValue(value)
 
+if __name__ == '__main__':
+    app = QtWidgets.QApplication(sys.argv)
+    example = WindDirection()
+    example.show()
+    app.exec()
