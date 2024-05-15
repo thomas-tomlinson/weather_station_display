@@ -9,9 +9,9 @@ class TempHumidity(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(TempHumidity, self).__init__(*args, **kwargs)
         # init our values
-        self._inside_temp = '0.0'
+        self._inside_temp = '99.9'
         self._inside_humidity = '0.0'
-        self._outside_temp = '0.0'
+        self._outside_temp = '99.9'
         self._outside_humidity = '0.0'
 
         layout = QtWidgets.QVBoxLayout()
@@ -30,17 +30,18 @@ class TempHumidity(QtWidgets.QWidget):
         self.update_values()
     
     def init_labels(self):
+        font = self.font()
+        font.setPointSize(10)
         # headers
-        small_style_sheet = 'font-size: 10pt;'
-        self._in_label.setStyleSheet(small_style_sheet)
+        self._in_label.setFont(font)
         self._in_label.setText('IN')
-        self._out_label.setStyleSheet(small_style_sheet)
+        self._out_label.setFont(font)
         self._out_label.setText('OUT')
 
         #large data display
-        large_style_sheet = 'font-size: 50pt;'
-        self._in_values.setStyleSheet(large_style_sheet)
-        self._out_values.setStyleSheet(large_style_sheet)
+        font.setPointSize(40)
+        self._in_values.setFont(font)
+        self._out_values.setFont(font)
 
     def update_values(self):
         self._in_values.setText("{}F {}%".format(self._inside_temp, self._inside_humidity))

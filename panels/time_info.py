@@ -30,16 +30,19 @@ class TimeInfo(QtWidgets.QWidget):
     
     def init_labels(self):
         # headers
-        small_style_sheet = 'font-size: 10pt;'
-        self._time_label.setStyleSheet(small_style_sheet)
+        font = self.font()
+        font.setPointSize(10)
+        self._time_label.setFont(font)
         self._time_label.setText('CURRENT TIME')
-        self._suninfo_label.setStyleSheet(small_style_sheet)
+        self._suninfo_label.setFont(font)
         self._suninfo_label.setText('SUNRISE / SUNSET')
-
+        # time small
+        font.setPointSize(25)
+        self._time_values.setFont(font)
+        
         #large data display
-        large_style_sheet = 'font-size: 50pt;'
-        self._time_values.setStyleSheet(large_style_sheet)
-        self._suninfo_values.setStyleSheet(large_style_sheet)
+        font.setPointSize(50)
+        self._suninfo_values.setFont(font)
 
     def update_values(self):
         self._time_values.setText("{}".format(self._datetime))

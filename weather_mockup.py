@@ -5,7 +5,7 @@ import os
 import requests, json, re, sys
 from time import strftime, ctime
 from PyQt6.QtCore import (Qt, QTimer, QTime, pyqtSignal, pyqtSlot)
-from PyQt6.QtGui import (QImage, QPixmap)
+from PyQt6.QtGui import (QImage, QPixmap, QFontDatabase, QFont)
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QGridLayout, QSizePolicy)
 from PyQt6 import QtWidgets, QtCore, uic
 #from MainWindow import Ui_MainWindow
@@ -20,6 +20,15 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__()
 
+        # load font
+        dirname, filename = os.path.split(os.path.abspath(__file__)) 
+        load = QFontDatabase.addApplicationFont(dirname + '/OxygenMono-Regular.ttf')
+
+        font = QFont('Oxygen Mono')
+        self.setFont(font)
+        #families = QFontDatabase.families()
+        #print(families)
+        #self.setStyleSheet('QWidget {font: "Oxygen Mono";}')
         layout = QGridLayout()
         layout.setVerticalSpacing(0)
         layout.setHorizontalSpacing(0)
@@ -27,19 +36,30 @@ class MainWindow(QMainWindow):
         size_policy = QSizePolicy()
         self.container.setSizePolicy(size_policy)
         self.container.setMinimumSize(QtCore.QSize(800, 480))
+        #self.container.setMaximumSize(QtCore.QSize(800, 480))
         self.setCentralWidget(self.container)
 
+
         bar_rain = BarRainfall()
+        #bar_rain.setMinimumWidth(200)
         temp_hum = TempHumidity()
+        #temp_hum.setMinimumWidth(300)
         time_info = TimeInfo()
+        #time_info.setMinimumWidth(300)
         wind_dir = WindDirection()
+        #wind_dir.setMinimumWidth(200)
         self.sat_image = QtWidgets.QLabel()
+        #self.sat_image.setMinimumSize(300,300)
 
         layout.addWidget(temp_hum, 0, 0)
         layout.addWidget(self.sat_image, 1, 0)
         layout.addWidget(wind_dir, 0, 1)
         layout.addWidget(bar_rain, 1, 1)
         layout.addWidget(time_info, 1, 2)
+        # sizing
+        layout.setColumnMinimumWidth(0, 300)
+        layout.setColumnMinimumWidth(1, 200)
+        layout.setColumnMinimumWidth(2, 300)
 
         self.container.setLayout(layout)
 

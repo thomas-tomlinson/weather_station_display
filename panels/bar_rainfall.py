@@ -29,16 +29,17 @@ class BarRainfall(QtWidgets.QWidget):
     
     def init_labels(self):
         # headers
-        small_style_sheet = 'font-size: 10pt;'
-        self._bar_label.setStyleSheet(small_style_sheet)
+        font = self.font()
+        font.setPointSize(10)
+        self._bar_label.setFont(font)
         self._bar_label.setText('BAROMETRIC PRESSURE')
-        self._rain_label.setStyleSheet(small_style_sheet)
+        self._rain_label.setFont(font)
         self._rain_label.setText('LAST 24HOUR RAINFALL')
 
         #large data display
-        large_style_sheet = 'font-size: 50pt;'
-        self._bar_values.setStyleSheet(large_style_sheet)
-        self._rain_values.setStyleSheet(large_style_sheet)
+        font.setPointSize(50)
+        self._bar_values.setFont(font)
+        self._rain_values.setFont(font)
 
     def update_values(self):
         self._bar_values.setText("{} inHg ".format(self._barometer))
