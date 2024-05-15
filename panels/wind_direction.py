@@ -39,8 +39,6 @@ class _Compass(QtWidgets.QWidget):
 
 
         font = QtGui.QFont()
-        font_list = font.families()
-        print(font_list)
         font.setPixelSize(20)
         metrics = QtGui.QFontMetrics(font)
         painter.setFont(font)

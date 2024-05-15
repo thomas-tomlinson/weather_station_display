@@ -7,7 +7,7 @@
 
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-from wind_direction import WindDirection
+from panels.wind_direction import WindDirection
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
