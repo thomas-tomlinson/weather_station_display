@@ -15,7 +15,37 @@ from panels.time_info import TimeInfo
 from panels.wind_direction import WindDirection
 from panels.graph import Graph
 
+class PwsWeather(QtCore.QObject):
+    data = pyqtSignal(dict)
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+        self.timer = QtCore.QTimer(self)
+        self.running = True
+        self.signal = pyqtSignal(object)
 
+    def start_process(self):
+        self.do_it()
+        self.timer.timeout.connect(self.do_it)
+        self.timer.start(180000)
+
+    def do_it(self):
+        #get the current pws weather live page
+        page = requests.get('http://192.168.1.119/livedata.htm')
+        soup = bs(page.text, 'html.parser')
+        all_items = soup.find_all('input', attrs={'disabled':'disabled'})
+
+        # data holder
+        w_data = {}
+
+        #find the data elements fron the horrific ambient weather live data
+        for item in all_items:
+            w_data[item["name"]] = item["value"]
+
+        w_data['update_time'] = ctime()
+        self.data.emit(w_data)
+
+    def stop(self):
+        self._isRunning = False
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -70,6 +100,13 @@ class MainWindow(QMainWindow):
 
         self.container.setLayout(layout)
 
+        self.thread = QtCore.QThread(self)
+        self.pws = PwsWeather()
+        self.pws.data.connect(temp_hum.setValue)
+        self.pws.data.connect(bar_rain.setValue)
+        self.pws.moveToThread(self.thread)
+        self.thread.started.connect(self.pws.start_process)  
+        self.thread.start()
         self.update_sat_image()
 
     def update_sat_image(self):

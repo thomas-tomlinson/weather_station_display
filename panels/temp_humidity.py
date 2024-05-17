@@ -9,10 +9,11 @@ class TempHumidity(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(TempHumidity, self).__init__(*args, **kwargs)
         # init our values
-        self._inside_temp = '99.9'
-        self._inside_humidity = '0.0'
-        self._outside_temp = '99.9'
-        self._outside_humidity = '0.0'
+        self._values = {}
+        self._values['inTemp'] = '99.9'
+        self._values['outTemp'] = '99.9'
+        self._values['inHumi'] = '0.0'
+        self._values['outHumi'] = '0.0'
 
         #layout = QtWidgets.QVBoxLayout()
         layout = QtWidgets.QGridLayout()
@@ -49,8 +50,18 @@ class TempHumidity(QtWidgets.QWidget):
         self._out_values.setFont(font)
 
     def update_values(self):
-        self._in_values.setText("{}F {}%".format(self._inside_temp, self._inside_humidity))
-        self._out_values.setText("{}F {}%".format(self._outside_temp, self._outside_humidity))
+        self._in_values.setText("{}F {}%".format(self._values['inTemp'], self._values['inHumi']))
+        self._out_values.setText("{}F {}%".format(self._values['outTemp'], self._values['outHumi']))
+
+    @QtCore.pyqtSlot(object)
+    def setValue(self, object):
+        # check for valid data and update as needed
+        values_to_check = ['inTemp', 'outTemp', 'inHumi', 'outHumi'] 
+        for value in values_to_check:
+            if value in object:
+                self._values[value] = object[value]
+        self.update_values()
+
 
 
 if __name__ == '__main__':
