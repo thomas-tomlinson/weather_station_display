@@ -16,10 +16,13 @@ class TimeInfo(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
 
         self._time_label = QtWidgets.QLabel()
+        self._time_label.setObjectName('time_label')
         layout.addWidget(self._time_label)
         self._time_values = QtWidgets.QLabel()
+        self._time_values.setWordWrap(True)
         layout.addWidget(self._time_values)
         self._suninfo_label = QtWidgets.QLabel()
+        self._suninfo_label.setObjectName('suninfo_label')
         layout.addWidget(self._suninfo_label)
         self._suninfo_values = QtWidgets.QLabel()
         layout.addWidget(self._suninfo_values)
@@ -28,18 +31,25 @@ class TimeInfo(QtWidgets.QWidget):
         self.init_labels()
         self.update_values()
     
+    def mousePressEvent(self, event):
+        self._datetime = time.ctime()
+        self.update_values()
+
     def init_labels(self):
         # headers
-        small_style_sheet = 'font-size: 10pt;'
-        self._time_label.setStyleSheet(small_style_sheet)
+        font = self.font()
+        font.setPointSize(10)
+        self._time_label.setFont(font)
         self._time_label.setText('CURRENT TIME')
-        self._suninfo_label.setStyleSheet(small_style_sheet)
+        self._suninfo_label.setFont(font)
         self._suninfo_label.setText('SUNRISE / SUNSET')
-
+        # time small
+        font.setPointSize(20)
+        self._time_values.setFont(font)
+        
         #large data display
-        large_style_sheet = 'font-size: 50pt;'
-        self._time_values.setStyleSheet(large_style_sheet)
-        self._suninfo_values.setStyleSheet(large_style_sheet)
+        font.setPointSize(50)
+        self._suninfo_values.setFont(font)
 
     def update_values(self):
         self._time_values.setText("{}".format(self._datetime))
