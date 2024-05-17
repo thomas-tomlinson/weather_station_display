@@ -13,6 +13,7 @@ from panels.bar_rainfall import BarRainfall
 from panels.temp_humidity import TempHumidity
 from panels.time_info import TimeInfo
 from panels.wind_direction import WindDirection
+from panels.graph import Graph
 
 
 
@@ -54,12 +55,14 @@ class MainWindow(QMainWindow):
         self.sat_image = QtWidgets.QLabel()
         self.sat_image.setScaledContents(True)
         #self.sat_image.setMinimumSize(300,300)
+        graph = Graph()
 
         layout.addWidget(temp_hum, 0, 0)
         layout.addWidget(self.sat_image, 1, 0)
         layout.addWidget(wind_dir, 0, 1)
         layout.addWidget(bar_rain, 1, 1)
         layout.addWidget(time_info, 1, 2)
+        layout.addWidget(graph, 0, 2)
         # sizing
         #layout.setColumnMinimumWidth(0, 300)
         #layout.setColumnMinimumWidth(1, 200)

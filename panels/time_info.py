@@ -31,6 +31,10 @@ class TimeInfo(QtWidgets.QWidget):
         self.init_labels()
         self.update_values()
     
+    def mousePressEvent(self, event):
+        self._datetime = time.ctime()
+        self.update_values()
+
     def init_labels(self):
         # headers
         font = self.font()
