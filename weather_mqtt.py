@@ -14,35 +14,39 @@ from panels.temp_humidity import TempHumidity
 from panels.time_info import TimeInfo
 from panels.wind_direction import WindDirection
 from panels.graph import Graph
+import paho.mqtt.client as mqtt
 
-class PwsWeather(QtCore.QObject):
+class MqttListener(QtCore.QObject):
     data = pyqtSignal(dict)
     def __init__(self):
         QtCore.QThread.__init__(self)
         self.timer = QtCore.QTimer(self)
         self.running = True
         self.signal = pyqtSignal(object)
+        self.data_holder = {}
+
+    def on_connect(self, client, userdata, flags, rc):
+        print("Connect with result code " + str(rc))
+        client.subscribe("weather_feed/loop")
+
+    def on_message(self, client, userdata, msg):
+        payload = json.loads(msg.payload.decode())
+        # populate the data_holder and then emit it 
+        for item in payload:
+            self.data_holder[item] = payload[item]
+                                             
+        self.data.emit(self.data_holder)
 
     def start_process(self):
         self.do_it()
-        self.timer.timeout.connect(self.do_it)
-        self.timer.start(180000)
 
     def do_it(self):
-        #get the current pws weather live page
-        page = requests.get('http://192.168.1.119/livedata.htm')
-        soup = bs(page.text, 'html.parser')
-        all_items = soup.find_all('input', attrs={'disabled':'disabled'})
+        client = mqtt.Client()
+        client.on_connect = self.on_connect
+        client.on_message = self.on_message
 
-        # data holder
-        w_data = {}
-
-        #find the data elements fron the horrific ambient weather live data
-        for item in all_items:
-            w_data[item["name"]] = item["value"]
-
-        w_data['update_time'] = ctime()
-        self.data.emit(w_data)
+        client.connect("weewx01.localdomain", 1883, 60)
+        client.loop_forever()
 
     def stop(self):
         self._isRunning = False
@@ -101,12 +105,12 @@ class MainWindow(QMainWindow):
         self.container.setLayout(layout)
 
         self.thread = QtCore.QThread(self)
-        self.pws = PwsWeather()
-        self.pws.data.connect(temp_hum.setValue)
-        self.pws.data.connect(bar_rain.setValue)
-        self.pws.data.connect(wind_dir.setValue)
-        self.pws.moveToThread(self.thread)
-        self.thread.started.connect(self.pws.start_process)  
+        self.mqtt = MqttListener()
+        self.mqtt.data.connect(temp_hum.setValue)
+        self.mqtt.data.connect(bar_rain.setValue)
+        self.mqtt.data.connect(wind_dir.setValue)
+        self.mqtt.moveToThread(self.thread)
+        self.thread.started.connect(self.mqtt.start_process)  
         self.thread.start()
         self.update_sat_image()
 
