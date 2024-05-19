@@ -10,8 +10,8 @@ class BarRainfall(QtWidgets.QWidget):
         super(BarRainfall, self).__init__(*args, **kwargs)
         # init our values
         self._values = {}
-        self._values['RelPress'] = '0.0'
-        self._values['rainLast24h'] = '0.0'
+        self._values['altimeter_inHg'] = 0.0
+        self._values['rain24_in'] = 0.0
 
         layout = QtWidgets.QVBoxLayout()
 
@@ -45,16 +45,16 @@ class BarRainfall(QtWidgets.QWidget):
         self._rain_values.setFont(font)
 
     def update_values(self):
-        self._bar_values.setText("{} inHg ".format(self._values['RelPress']))
-        self._rain_values.setText("{} in".format(self._values['rainLast24h']))
+        self._bar_values.setText("{:3.2f} inHg ".format(self._values['altimeter_inHg']))
+        self._rain_values.setText("{:2.1f} in".format(self._values['rain24_in']))
 
     @QtCore.pyqtSlot(object)
     def setValue(self, object):
         # check for valid data and update as needed
-        values_to_check = ['RelPress', 'rainLast24h']
+        values_to_check = ['altimeter_inHg', 'rain24_in']
         for value in values_to_check:
             if value in object:
-                self._values[value] = object[value]
+                self._values[value] = float(object[value])
         self.update_values()
 
 

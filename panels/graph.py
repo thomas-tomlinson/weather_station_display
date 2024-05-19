@@ -6,6 +6,7 @@ import pyqtgraph as pg
 import sys
 import requests
 import json
+import numpy as np
 
 class Graph(QtWidgets.QMainWindow):
     _data = {}
@@ -22,9 +23,14 @@ class Graph(QtWidgets.QMainWindow):
     def draw_graph(self):
         series = self._data_view_current
         pen = pg.mkPen(color=(255, 0, 0))
+        axis = pg.DateAxisItem()
         self.plot_graph.setLabel("left", self._data[series]['y_axis_label'])
         self.plot_graph.setLabel("bottom", "Time")
-        self.graph = self.plot_graph.plot(self._data[series]['x_axis'], self._data[series]['y_axis'], pen=pen)
+        self.plot_graph.setAxisItems({'bottom':axis})
+        #print("x_axis:", len(self._data[series]['x_axis']))
+        #print("y_axis:", len(self._data[series]['y_axis']))
+        #self.graph = self.plot_graph.plot(self._data[series]['x_axis'], self._data[series]['y_axis'], pen=pen)
+        self.graph = self.plot_graph.plot(self._data[series]['plot_data'], pen=pen, connect='finite')
 
     def mousePressEvent(self, event):
         # increment our view counter
@@ -39,7 +45,7 @@ class Graph(QtWidgets.QMainWindow):
         holder = []
         # remove all data
         self._data = []
-        raw_data = requests.get('http://wdisplay01.local/weewx/belchertown/json/day.json')
+        raw_data = requests.get('http://weewx01.localdomain/belchertown/json/day.json')
         json_data = json.loads(raw_data.content)        
         for keys in json_data:
             if keys.startswith('chart') is True and isinstance(json_data[keys], dict):
@@ -50,16 +56,10 @@ class Graph(QtWidgets.QMainWindow):
                 temp_object = {}
                 temp_object['name'] = entry['series'][charttype]['name']
                 temp_object['y_axis_label'] = entry['series'][charttype]['yAxis_label']
-                temp_object['x_axis'] = []
-                temp_object['y_axis'] = []
-                for value in entry['series'][charttype]['data']:
-                    temp_object['x_axis'].append(value[0])
-                    temp_object['y_axis'].append(value[1])
+                a = np.array(entry['series'][charttype]['data'], np.float32)
+                a[:,0] = a[:,0] / 1000 
+                temp_object['plot_data'] = a
                 self._data.append(temp_object)
-
-
-
-
 
 
 if __name__ == '__main__':

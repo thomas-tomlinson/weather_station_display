@@ -1,8 +1,28 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPainter, QPolygon, QFont, QFontMetrics, QPen, QColor
 from PyQt6.QtWidgets import QApplication
 import sys, time
+
+class TimeProcess(QtCore.QObject):
+    timedate = pyqtSignal(str)
+
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+        self.timer = QtCore.QTimer(self)
+        self.running = True
+        self.signal = pyqtSignal(str)
+
+    def start_process(self):
+        self.do_it()
+        self.timer.timeout.connect(self.do_it)
+        self.timer.start(1000)
+
+    def do_it(self):
+        self.timedate.emit(time.ctime())
+        
+    def stop(self):
+        self._isRunning = False
 
 class TimeInfo(QtWidgets.QWidget):
 
@@ -11,7 +31,6 @@ class TimeInfo(QtWidgets.QWidget):
         # init our values, place holders currently
         self._datetime = time.ctime()
         self._suninfo = '0800 / 2130'
-
 
         layout = QtWidgets.QVBoxLayout()
 
@@ -29,11 +48,22 @@ class TimeInfo(QtWidgets.QWidget):
 
         self.setLayout(layout) 
         self.init_labels()
-        self.update_values()
-    
-    def mousePressEvent(self, event):
-        self._datetime = time.ctime()
-        self.update_values()
+
+        self.thread = QtCore.QThread(self)
+        self.timei = TimeProcess()
+        self.timei.timedate.connect(self.update_clock)
+        self.timei.moveToThread(self.thread)
+        self.thread.started.connect(self.timei.start_process)  
+        self.thread.start()
+
+        #self.update_values()
+    @QtCore.pyqtSlot(str)
+    def update_clock(self, value):
+        self._time_values.setText("{}".format(value))
+
+    #def mousePressEvent(self, event):
+    #    self._datetime = time.ctime()
+    #    self.update_values()
 
     def init_labels(self):
         # headers
@@ -55,6 +85,10 @@ class TimeInfo(QtWidgets.QWidget):
         self._time_values.setText("{}".format(self._datetime))
         self._suninfo_values.setText("{}".format(self._suninfo))
 
+    def closeEvent(self, event):
+        self.timei.stop()
+        self.thread.quit()
+        self.thread.wait()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
