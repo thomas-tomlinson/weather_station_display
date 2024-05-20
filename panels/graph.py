@@ -62,8 +62,6 @@ class Graph(QtWidgets.QMainWindow):
         self.thread.started.connect(self.fetchdata.start_process)  
         self.thread.start()
 
-        #self.fetch_data()
-        #self.draw_graph()
     @QtCore.pyqtSlot(list)
     def update_graph_data(self, value):
         self._data = value
@@ -73,10 +71,11 @@ class Graph(QtWidgets.QMainWindow):
         series = self._data_view_current
         pen = pg.mkPen(color=(255, 0, 0))
         axis = pg.DateAxisItem()
+        self.plot_graph.clear()
         self.plot_graph.setLabel("left", self._data[series]['y_axis_label'])
         self.plot_graph.setLabel("bottom", "Time")
         self.plot_graph.setAxisItems({'bottom':axis})
-        self.graph = self.plot_graph.plot(self._data[series]['plot_data'], pen=pen, connect='finite')
+        graph = self.plot_graph.plot(self._data[series]['plot_data'], pen=pen, connect='finite')
 
     def mousePressEvent(self, event):
         # increment our view counter
@@ -84,29 +83,8 @@ class Graph(QtWidgets.QMainWindow):
             self._data_view_current = 0
         else:
             self._data_view_current += 1 
-        self.graph.clear()
+        #self.graph.clear()
         self.draw_graph()
-
-#    def fetch_data(self):
-#        holder = []
-#        # remove all data
-#        self._data = []
-#        raw_data = requests.get('http://weewx01.localdomain/belchertown/json/day.json')
-#        json_data = json.loads(raw_data.content)        
-#        for keys in json_data:
-#            if keys.startswith('chart') is True and isinstance(json_data[keys], dict):
-#                holder.append(json_data[keys])
-#
-#        for entry in holder:
-#            for charttype in entry['series']:
-#                temp_object = {}
-#                temp_object['name'] = entry['series'][charttype]['name']
-#                temp_object['y_axis_label'] = entry['series'][charttype]['yAxis_label']
-#                a = np.array(entry['series'][charttype]['data'], np.float32)
-#                a[:,0] = a[:,0] / 1000 
-#                temp_object['plot_data'] = a
-#                self._data.append(temp_object)
-
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

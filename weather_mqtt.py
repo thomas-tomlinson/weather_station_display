@@ -101,7 +101,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(graph, 0, 2)
         # sizing
         #layout.setColumnMinimumWidth(0, 300)
-        #layout.setColumnMinimumWidth(1, 200)
+        layout.setColumnMinimumWidth(1, 200)
         #layout.setColumnMinimumWidth(2, 300)
 
         self.container.setLayout(layout)
@@ -114,19 +114,6 @@ class MainWindow(QMainWindow):
         self.mqtt.moveToThread(self.thread)
         self.thread.started.connect(self.mqtt.start_process)  
         self.thread.start()
-        #self.update_sat_image()
-
-#    def update_sat_image(self):
-#        image = QImage()
-#        try:
-#            sat_image_bitmap = requests.get('https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg').content
-#        except Exception as e:
-#            sat_image_bitmap = None
-#            print('failed to retrieve satellite image, error:', e)
-#        if sat_image_bitmap is not None:
-#            image.loadFromData(sat_image_bitmap)
-#            self.sat_image.setPixmap(QPixmap(image))
-
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
