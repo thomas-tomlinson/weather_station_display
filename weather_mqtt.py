@@ -14,6 +14,7 @@ from panels.temp_humidity import TempHumidity
 from panels.time_info import TimeInfo
 from panels.wind_direction import WindDirection
 from panels.graph import Graph
+from panels.sat_image import SatImage
 import paho.mqtt.client as mqtt
 
 class MqttListener(QtCore.QObject):
@@ -86,13 +87,14 @@ class MainWindow(QMainWindow):
         #time_info.setMinimumWidth(300)
         wind_dir = WindDirection()
         #wind_dir.setMinimumWidth(200)
-        self.sat_image = QtWidgets.QLabel()
-        self.sat_image.setScaledContents(True)
+        #self.sat_image = QtWidgets.QLabel()
+        #self.sat_image.setScaledContents(True)
+        sat_image = SatImage()
         #self.sat_image.setMinimumSize(300,300)
         graph = Graph()
 
         layout.addWidget(temp_hum, 0, 0)
-        layout.addWidget(self.sat_image, 1, 0)
+        layout.addWidget(sat_image, 1, 0)
         layout.addWidget(wind_dir, 0, 1)
         layout.addWidget(bar_rain, 1, 1)
         layout.addWidget(time_info, 1, 2)
@@ -112,19 +114,18 @@ class MainWindow(QMainWindow):
         self.mqtt.moveToThread(self.thread)
         self.thread.started.connect(self.mqtt.start_process)  
         self.thread.start()
-        self.update_sat_image()
+        #self.update_sat_image()
 
-    def update_sat_image(self):
-        image = QImage()
-        try:
-            sat_image_bitmap = requests.get('https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg').content
-        except Exception as e:
-            sat_image_bitmap = None
-            print('failed to retrieve satellite image, error:', e)
-        if sat_image_bitmap is not None:
-            image.loadFromData(sat_image_bitmap)
-            self.sat_image.setPixmap(QPixmap(image))
-
+#    def update_sat_image(self):
+#        image = QImage()
+#        try:
+#            sat_image_bitmap = requests.get('https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg').content
+#        except Exception as e:
+#            sat_image_bitmap = None
+#            print('failed to retrieve satellite image, error:', e)
+#        if sat_image_bitmap is not None:
+#            image.loadFromData(sat_image_bitmap)
+#            self.sat_image.setPixmap(QPixmap(image))
 
 
 def main():
@@ -137,5 +138,4 @@ if __name__ == '__main__':
     #needed for X less raspberry pi
     #os.environ["QT_QPA_PLATFORM"] = "eglfs"
     #os.environ["QT_QPA_EGLFS_HIDECURSOR"] = "1"
-
     main()

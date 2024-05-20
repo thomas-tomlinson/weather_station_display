@@ -19,7 +19,8 @@ class TimeProcess(QtCore.QObject):
         self.timer.start(1000)
 
     def do_it(self):
-        self.timedate.emit(time.ctime())
+        time_string = time.strftime('%a %b %d %Y\n%H:%M:%S')
+        self.timedate.emit(time_string)
         
     def stop(self):
         self._isRunning = False
