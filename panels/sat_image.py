@@ -14,6 +14,7 @@ class ImageFetch(QtCore.QObject):
         self.running = True
         self.image_list = [
             'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg',
+            'https://radar.weather.gov/ridge/standard/PACNORTHWEST_0.gif',
             'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/AirMass/300x300.jpg',
             'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/DayNightCloudMicroCombo/300x300.jpg',
             'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/FireTemperature/300x300.jpg',
@@ -43,8 +44,11 @@ class ImageFetch(QtCore.QObject):
             print('failed to retrieve satellite image, error:', e)
         if sat_image_bitmap is not None:
             image.loadFromData(sat_image_bitmap)
-
-        self.image.emit(QPixmap(image))
+        #scale the image to 300x300
+        qp = QPixmap(image)
+        qp_scaled = qp.scaled(300,300)
+        #self.image.emit(QPixmap(image))
+        self.image.emit(qp_scaled)
         
     def stop(self):
         self._isRunning = False
@@ -53,7 +57,6 @@ class SatImage(QtWidgets.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(SatImage, self).__init__(*args, **kwargs)
-
         self._sat_image = QtWidgets.QLabel()
         self._sat_image.setScaledContents(True) 
         self.setCentralWidget(self._sat_image)
@@ -70,7 +73,23 @@ class SatImage(QtWidgets.QMainWindow):
         self._sat_image.setPixmap(QPixmap(image))
 
     def mousePressEvent(self, event):
-        self.fetchdata.touch_screen_cycle()
+        self._last = "Click"
+
+    def mouseReleaseEvent(self, event):
+        if self._last == "Click":
+            QtCore.QTimer.singleShot(QApplication.instance().doubleClickInterval(),
+                                     self.performSingleClickAction)
+        else:
+            pass
+            #self.message = "Double Click"
+            #self.update()
+
+    def mouseDoubleClickEvent(self, event):
+        self._last = "Double Click" 
+
+    def performSingleClickAction(self):
+        if self._last == "Click":
+            self.fetchdata.touch_screen_cycle()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
