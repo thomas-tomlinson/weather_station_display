@@ -1,8 +1,40 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QPainter, QPolygon, QFont, QFontMetrics, QPen, QColor
+from PyQt6.QtGui import QPainter, QPolygon, QFont, QFontMetrics, QPen, QColor, QPixmap, QImage
 from PyQt6.QtWidgets import QApplication
-import sys, time
+import sys, time, json, requests, os
+
+
+class FetchAlmanacData(QtCore.QObject):
+    almanacData = pyqtSignal(object)
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+        self.timer = QtCore.QTimer(self)
+        self.running = True
+        self.signal = pyqtSignal(object)
+
+    def start_process(self):
+        self.do_it()
+        self.timer.timeout.connect(self.do_it)
+        self.timer.start(3600000)
+
+    def do_it(self):
+        data = {}
+        try:
+            raw_data = requests.get('http://weewx01.localdomain/belchertown/json/weewx_data.json')
+            data = json.loads(raw_data.content)        
+        except Exception as e:
+            print("failed to query weewx_data.json from weewx host")
+
+        try: 
+            self.almanacData.emit(data['almanac'])
+        except KeyError:
+            # no data to emit
+            print("failed to find the almanac key")
+            pass
+        
+    def stop(self):
+        self._isRunning = False
 
 class TimeProcess(QtCore.QObject):
     timedate = pyqtSignal(str)
@@ -19,7 +51,8 @@ class TimeProcess(QtCore.QObject):
         self.timer.start(1000)
 
     def do_it(self):
-        self.timedate.emit(time.ctime())
+        time_string = time.strftime('%a %b %d %Y\n%H:%M:%S')
+        self.timedate.emit(time_string)
         
     def stop(self):
         self._isRunning = False
@@ -43,12 +76,28 @@ class TimeInfo(QtWidgets.QWidget):
         self._suninfo_label = QtWidgets.QLabel()
         self._suninfo_label.setObjectName('suninfo_label')
         layout.addWidget(self._suninfo_label)
-        self._suninfo_values = QtWidgets.QLabel()
-        layout.addWidget(self._suninfo_values)
 
+        hbox = QtWidgets.QHBoxLayout()
+        gridLayout = QtWidgets.QGridLayout()
+        gridLayout.setColumnStretch(2, 1)
+        self._sunrise_image = QtWidgets.QLabel()
+        gridLayout.addWidget(self._sunrise_image, 0, 0)
+        self._sunset_image = QtWidgets.QLabel()
+        gridLayout.addWidget(self._sunset_image, 1, 0)
+        self._sunrise_value = QtWidgets.QLabel()
+        gridLayout.addWidget(self._sunrise_value, 0, 1)
+        self._sunset_value = QtWidgets.QLabel()
+        gridLayout.addWidget(self._sunset_value, 1, 1)
+        hbox.addLayout(gridLayout)
+
+        self._moon_value = QtWidgets.QLabel()
+        hbox.addWidget(self._moon_value)
+
+        layout.addLayout(hbox)
         self.setLayout(layout) 
         self.init_labels()
 
+        # clock thread
         self.thread = QtCore.QThread(self)
         self.timei = TimeProcess()
         self.timei.timedate.connect(self.update_clock)
@@ -56,14 +105,34 @@ class TimeInfo(QtWidgets.QWidget):
         self.thread.started.connect(self.timei.start_process)  
         self.thread.start()
 
-        #self.update_values()
+        # almanac data thread
+        self.thread = QtCore.QThread(self)
+        self.almanac = FetchAlmanacData()
+        self.almanac.almanacData.connect(self.update_almanac)
+        self.almanac.moveToThread(self.thread)
+        self.thread.started.connect(self.almanac.start_process)  
+        self.thread.start()
+
     @QtCore.pyqtSlot(str)
     def update_clock(self, value):
         self._time_values.setText("{}".format(value))
 
-    #def mousePressEvent(self, event):
-    #    self._datetime = time.ctime()
-    #    self.update_values()
+    @QtCore.pyqtSlot(object)
+    def update_almanac(self, value):
+        self._sunrise_value.setText("{}:{}".format(
+            value['sunrise_hour'],
+            value['sunrise_minute'],
+            ))
+        self._sunset_value.setText("{}:{}".format(
+            value['sunset_hour'],
+            value['sunset_minute'],
+            ))
+        moon_phase = value['moon']['moon_phase'].split()
+        self._moon_value.setText("Moon:{}%\n{}\n{}".format(
+            value['moon']['moon_fullness'],
+            moon_phase[0],
+            moon_phase[1],
+            ))
 
     def init_labels(self):
         # headers
@@ -72,14 +141,21 @@ class TimeInfo(QtWidgets.QWidget):
         self._time_label.setFont(font)
         self._time_label.setText('CURRENT TIME')
         self._suninfo_label.setFont(font)
-        self._suninfo_label.setText('SUNRISE / SUNSET')
+        self._suninfo_label.setText('SUN AND MOON ')
         # time small
         font.setPointSize(20)
         self._time_values.setFont(font)
         
         #large data display
-        font.setPointSize(50)
-        self._suninfo_values.setFont(font)
+        #font.setPointSize(50)
+        #self._suninfo_values.setFont(font)
+        #self._suninfo_values.setFont(font)
+
+        #images
+        sunrise_image = QPixmap(os.path.join(os.path.dirname(__file__), '../images/sunrise.png'))
+        self._sunrise_image.setPixmap(sunrise_image)
+        sunset_image = QPixmap(os.path.join(os.path.dirname(__file__), '../images/sunset.png'))
+        self._sunset_image.setPixmap(sunset_image)
 
     def update_values(self):
         self._time_values.setText("{}".format(self._datetime))

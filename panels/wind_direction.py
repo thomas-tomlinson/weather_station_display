@@ -102,11 +102,24 @@ class WindDirection(QtWidgets.QWidget):
         self._values['windGust_mph'] = 0.0
 
         layout = QtWidgets.QVBoxLayout()
+        header_layout = QtWidgets.QHBoxLayout()
         self._compass = _Compass()
 
-        self._text = QtWidgets.QLabel()
+        #self._text = QtWidgets.QLabel()
+        self._windspeed_label = QtWidgets.QLabel()
+        self._windspeed_label.setText("A:")
+        self._windspeed_label.setObjectName("windspeed_label")
+        header_layout.addWidget(self._windspeed_label)
+        self._windspeed_value = QtWidgets.QLabel()
+        header_layout.addWidget(self._windspeed_value)
+        self._windgust_label = QtWidgets.QLabel()
+        self._windgust_label.setText("G:")
+        self._windgust_label.setObjectName("windgust_label")
+        header_layout.addWidget(self._windgust_label)
+        self._windgust_value = QtWidgets.QLabel()
+        header_layout.addWidget(self._windgust_value)
 
-        layout.addWidget(self._text)
+        layout.addLayout(header_layout)
         layout.addWidget(self._compass)
         self.update_label() 
         self.setLayout(layout)
@@ -124,8 +137,9 @@ class WindDirection(QtWidgets.QWidget):
         self.update_label()
 
     def update_label(self):
-        #self._text.setText("A: " + str(self._values['avgwind']) + " G: " + str(self._values['gustspeed']))
-        self._text.setText("A: {:2.1f} G: {:2.1f} ".format(self._values['windSpeed_mph'], self._values['windGust_mph']))
+        #self._text.setText("A: {:2.1f} G: {:2.1f} ".format(self._values['windSpeed_mph'], self._values['windGust_mph']))
+        self._windspeed_value.setText("{:2.1f}".format(self._values['windSpeed_mph']))
+        self._windgust_value.setText("{:2.1f}".format(self._values['windGust_mph']))
 
 
 if __name__ == '__main__':
