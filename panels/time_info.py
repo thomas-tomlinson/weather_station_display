@@ -21,7 +21,7 @@ class FetchAlmanacData(QtCore.QObject):
     def do_it(self):
         data = {}
         try:
-            raw_data = requests.get('http://weewx01.localdomain/belchertown/json/weewx_data.json')
+            raw_data = requests.get('http://weewx01.local/belchertown/json/weewx_data.json')
             data = json.loads(raw_data.content)        
         except Exception as e:
             print("failed to query weewx_data.json from weewx host")

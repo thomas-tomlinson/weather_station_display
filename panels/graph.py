@@ -26,7 +26,7 @@ class FetchData(QtCore.QObject):
         holder = []
         # remove all data
         return_data = [] 
-        raw_data = requests.get('http://weewx01.localdomain/belchertown/json/day.json')
+        raw_data = requests.get('http://weewx01.local/belchertown/json/day.json')
         json_data = json.loads(raw_data.content)        
         for keys in json_data:
             if keys.startswith('chart') is True and isinstance(json_data[keys], dict):
