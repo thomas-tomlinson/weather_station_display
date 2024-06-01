@@ -46,7 +46,7 @@ class MqttListener(QtCore.QObject):
         client.on_connect = self.on_connect
         client.on_message = self.on_message
 
-        client.connect("weewx01.localdomain", 1883, 60)
+        client.connect("weewx01", 1883, 60)
         client.loop_forever()
 
     def stop(self):
