@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPainter, QPolygon, QFont, QFontMetrics, QPen, QColor, QPixmap, QImage
 from PyQt6.QtWidgets import QApplication
 import sys, time, json, requests, os
-
+import weather_config.weather_config as wc
 
 class FetchAlmanacData(QtCore.QObject):
     almanacData = pyqtSignal(object)
@@ -21,7 +21,7 @@ class FetchAlmanacData(QtCore.QObject):
     def do_it(self):
         data = {}
         try:
-            raw_data = requests.get('http://weewx01.localdomain/belchertown/json/weewx_data.json')
+            raw_data = requests.get(wc.cfg['weewx_almanac_data'])
             data = json.loads(raw_data.content)        
         except Exception as e:
             print("failed to query weewx_data.json from weewx host")

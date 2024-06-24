@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPainter, QPolygon, QFont, QFontMetrics, QPen, QColor, QImage, QPixmap
 from PyQt6.QtWidgets import QApplication
 import sys, requests
-
+import weather_config.weather_config as wc
 
 class ImageFetch(QtCore.QObject):
     image = pyqtSignal(QPixmap) 
@@ -12,44 +12,49 @@ class ImageFetch(QtCore.QObject):
         QtCore.QThread.__init__(self)
         self.timer = QtCore.QTimer(self)
         self.running = True
-        self.image_list = [
-            'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg',
-            'https://radar.weather.gov/ridge/standard/PACNORTHWEST_0.gif',
-            'https://radar.weather.gov/ridge/standard/KCBX_0.gif',
-            'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/AirMass/300x300.jpg',
-            'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/DayNightCloudMicroCombo/300x300.jpg',
-            'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/FireTemperature/300x300.jpg',
-            'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/Sandwich/300x300.jpg',
-        ]
+        self.image_list = wc.cfg['sat_images']
         self.image_position = 0
+        self.image_holder = []
 
     def touch_screen_cycle(self):
+        if len(self.image_list) == 1:
+            # only a single image, nothing to do here
+            return
+
         if self.image_position  == len(self.image_list) - 1:
             self.image_position = 0
         else:
             self.image_position += 1 
-        self.fetch_sat_image()
+        self.image.emit(self.image_holder[self.image_position])
+        #self.fetch_sat_image()
 
     def start_process(self):
-        self.fetch_sat_image()
-        self.timer.timeout.connect(self.fetch_sat_image)
+        self.fetch_all_images()
+        self.timer.timeout.connect(self.fetch_all_images)
         # 15 minutes seems like a good starting place
         self.timer.start(900000)
 
-    def fetch_sat_image(self):
-        image = QImage()
-        try:
-            sat_image_bitmap = requests.get(self.image_list[self.image_position]).content
-        except Exception as e:
-            sat_image_bitmap = None
-            print('failed to retrieve satellite image, error:', e)
-        if sat_image_bitmap is not None:
-            image.loadFromData(sat_image_bitmap)
-        #scale the image to 300x300
-        qp = QPixmap(image)
-        qp_scaled = qp.scaled(300,300)
-        #self.image.emit(QPixmap(image))
-        self.image.emit(qp_scaled)
+    def fetch_all_images(self):
+        #clear the current images
+        self.image_holder = []
+        #retrieve all of the sat images and store them for use.
+        for entry in self.image_list:
+            image = QImage()
+            try:
+                sat_image_bitmap = requests.get(entry).content
+            except Exception as e:
+                sat_image_bitmap = None
+                print('failed to retrieve satellite image, error:', e)
+                next
+            if sat_image_bitmap is not None:
+                image.loadFromData(sat_image_bitmap)
+            #scale the image to 300x300
+            qp = QPixmap(image)
+            qp_scaled = qp.scaled(300,300)
+            #self.image.emit(QPixmap(image))
+            self.image_holder.append(qp_scaled)
+        # emit the current offset image
+        self.image.emit(self.image_holder[self.image_position])  
         
     def stop(self):
         self._isRunning = False
