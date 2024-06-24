@@ -160,4 +160,4 @@ cython_debug/
 #.idea/
 
 # exclude the weather.cfg config file
-/weather.cfg
+/weather_cfg.json
