@@ -102,6 +102,7 @@ class Graph(QtWidgets.QMainWindow):
             self._data_view_current += 1 
         #self.graph.clear()
         self.draw_graph()
+        super().mousePressEvent(event)
 
 
 if __name__ == '__main__':

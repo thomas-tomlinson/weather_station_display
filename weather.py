@@ -150,7 +150,7 @@ class MainWindow(QMainWindow):
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.MouseButtonDblClick:
-            print(event)
+            print("double click event: {}".format(event))
             self.object_dbl_clicked = obj
             self.widgetResize()
         return False
