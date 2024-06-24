@@ -16,6 +16,8 @@ from panels.wind_direction import WindDirection
 from panels.graph import Graph
 from panels.sat_image import SatImage
 import paho.mqtt.client as mqtt
+import weather_config.weather_config as wc
+
 
 class MqttListener(QtCore.QObject):
     data = pyqtSignal(dict)
@@ -46,7 +48,7 @@ class MqttListener(QtCore.QObject):
         client.on_connect = self.on_connect
         client.on_message = self.on_message
 
-        client.connect("weewx01", 1883, 60)
+        client.connect(wc.cfg['weewx_host'], 1883, 60)
         client.loop_forever()
 
     def stop(self):

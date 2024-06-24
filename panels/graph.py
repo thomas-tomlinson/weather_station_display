@@ -8,6 +8,7 @@ import requests
 import json
 import numpy as np
 import pandas as pd
+import weather_config.weather_config as wc
 
 class FetchData(QtCore.QObject):
     data = pyqtSignal(object)
@@ -24,7 +25,7 @@ class FetchData(QtCore.QObject):
         self.timer.start(900000)
 
     def fetch_data(self):
-        alldata = pd.read_json('http://weewx01.localdomain/data/last24h.json')
+        alldata = pd.read_json(wc.cfg['weewx_24h_data'])
         #alldata.set_index('dateTime', inplace=True) 
         alldata['epochs'] = alldata['dateTime'].astype('int64') / 1000000000 
         self.data.emit(alldata)
