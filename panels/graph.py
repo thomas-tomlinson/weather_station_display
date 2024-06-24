@@ -25,8 +25,12 @@ class FetchData(QtCore.QObject):
         self.timer.start(900000)
 
     def fetch_data(self):
-        alldata = pd.read_json(wc.cfg['weewx_24h_data'])
-        #alldata.set_index('dateTime', inplace=True) 
+        try:
+            alldata = pd.read_json(wc.cfg['weewx_24h_data'])
+        except Exception as e:
+            print("failed to retrieve graph data, reason: {}".format(e))
+            return
+
         alldata['epochs'] = alldata['dateTime'].astype('int64') / 1000000000 
         self.data.emit(alldata)
         

@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPainter, QPolygon, QFont, QFontMetrics, QPen, QColor, QImage, QPixmap
 from PyQt6.QtWidgets import QApplication
 import sys, requests
-
+import weather_config.weather_config as wc
 
 class ImageFetch(QtCore.QObject):
     image = pyqtSignal(QPixmap) 
@@ -12,15 +12,7 @@ class ImageFetch(QtCore.QObject):
         QtCore.QThread.__init__(self)
         self.timer = QtCore.QTimer(self)
         self.running = True
-        self.image_list = [
-            'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg',
-            'https://radar.weather.gov/ridge/standard/PACNORTHWEST_0.gif',
-            'https://radar.weather.gov/ridge/standard/KCBX_0.gif',
-            'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/AirMass/300x300.jpg',
-            'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/DayNightCloudMicroCombo/300x300.jpg',
-            'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/FireTemperature/300x300.jpg',
-            'https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/Sandwich/300x300.jpg',
-        ]
+        self.image_list = wc.cfg['sat_images']
         self.image_position = 0
 
     def touch_screen_cycle(self):
