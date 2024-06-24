@@ -46,7 +46,7 @@ class BarRainfall(QtWidgets.QWidget):
 
     def update_values(self):
         self._bar_values.setText("{:3.2f} inHg ".format(self._values['barometer_inHg']))
-        self._rain_values.setText("{:2.1f} in".format(self._values['rain24_in']))
+        self._rain_values.setText("{:2.2f} in".format(self._values['rain24_in']))
 
     @QtCore.pyqtSlot(object)
     def setValue(self, object):

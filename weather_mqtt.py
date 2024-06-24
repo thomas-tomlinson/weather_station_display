@@ -103,8 +103,8 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(sat_image, 1, 0)
         self.layout.addWidget(wind_dir, 0, 1)
         self.layout.addWidget(bar_rain, 1, 1)
-        self.layout.addWidget(time_info, 1, 2)
-        self.layout.addWidget(graph, 0, 2)
+        self.layout.addWidget(time_info, 0, 2)
+        self.layout.addWidget(graph, 1, 2)
         # sizing
         #layout.setColumnMinimumWidth(0, 300)
         self.layout.setColumnMinimumWidth(1, 200)
