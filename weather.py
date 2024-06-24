@@ -3,7 +3,7 @@
 from bs4 import BeautifulSoup as bs
 import os
 import requests, json, re, sys
-from time import strftime, ctime
+from time import strftime, ctime, perf_counter_ns
 from PyQt6.QtCore import (Qt, QTimer, QTime, pyqtSignal, pyqtSlot, QEvent)
 from PyQt6.QtGui import (QImage, QPixmap, QFontDatabase, QFont)
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QGridLayout, QSizePolicy)
@@ -139,7 +139,7 @@ class MainWindow(QMainWindow):
             # to full screen the doubleclicked one.
             for i in range(index):
                 widget = self.layout.itemAt(i).widget()
-                if widget != self.object_dbl_clicked:
+                if widget != self.object_clicked:
                     widget.hide()
         else:
             # this assumes there's just one panel visible.
@@ -149,10 +149,27 @@ class MainWindow(QMainWindow):
                 widget.show()
 
     def eventFilter(self, obj, event):
-        if event.type() == QEvent.Type.MouseButtonDblClick:
-            print(event)
-            self.object_dbl_clicked = obj
-            self.widgetResize()
+        #if event.type() == QEvent.Type.MouseButtonDblClick:
+            #print("double click event: {}".format(event))
+            #self.object_dbl_clicked = obj
+            #self.widgetResize()
+        if event.type() == QEvent.Type.MouseButtonPress:
+            self.object_clicked = obj
+            self.mouse_press_time = perf_counter_ns()
+            #print("mount button press: {} object: {}".format(self.mouse_press_time, obj))
+        elif event.type() == QEvent.Type.MouseButtonRelease:
+            #print("mount button release: {} object: {}".format(self.mouse_press_time, obj))
+            if self.object_clicked == obj:
+                release_time = perf_counter_ns()
+            else:
+                return False
+
+            button_held = (release_time - self.mouse_press_time)
+            #print("button held: {}".format(button_held))
+            if button_held > 1000000000:
+                #long press
+                self.widgetResize()
+
         return False
 
 def main():

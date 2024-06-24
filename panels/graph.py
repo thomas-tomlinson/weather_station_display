@@ -59,6 +59,7 @@ class Graph(QtWidgets.QMainWindow):
         ]
         self.plot_graph = pg.PlotWidget()
         self.plot_graph.setMouseEnabled(x=False, y=False)
+        self.plot_graph.setMenuEnabled(enableMenu=False, enableViewBoxMenu=False)
         self.plot_graph.setObjectName("graph")
         self.setCentralWidget(self.plot_graph) 
 
@@ -102,7 +103,6 @@ class Graph(QtWidgets.QMainWindow):
             self._data_view_current += 1 
         #self.graph.clear()
         self.draw_graph()
-
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
