@@ -38,15 +38,15 @@ class Graph(QtWidgets.QMainWindow):
         self._data = {}
         self._data_view_current = 0
         self._data_views = [
-            {'unit': 'degree F', 'series':["outTemp", "inTemp",]},
-            {'unit': 'mph', 'series':["windSpeed",]},
-            {'unit': 'mph', 'series':["windGust",]},
-            {'unit': 'degree F', 'series':["windchill",]},
-            {'unit': 'Humidity %', 'series':["outHumidity","inHumidity"]},
-            {'unit': 'inches', 'series':["rain"]},
-            {'unit': 'in Hg', 'series':["barometer"]},
-            {'unit': 'voltage', 'series':["supplyVoltage"]},
-            {'unit': 'direction', 'series':["windDir"]},
+            {'unit': 'degree F', 'title': 'Temp','series':["outTemp", "inTemp",]},
+            {'unit': 'mph', 'title': 'Wind Speed', 'series':["windSpeed",]},
+            {'unit': 'mph', 'title':'Wind Gust', 'series':["windGust",]},
+            {'unit': 'degree F', 'title': 'Wind Chill', 'series':["windchill",]},
+            {'unit': 'Humidity %', 'title': 'Humidity', 'series':["outHumidity","inHumidity"]},
+            {'unit': 'inches', 'title': 'Rain', 'y_zero': True, 'series':["rain"]},
+            {'unit': 'in Hg', 'title':'Barometric Pressure', 'series':["barometer"]},
+            {'unit': 'voltage', 'title': 'Sensor Battery', 'series':["supplyVoltage"]},
+            {'unit': 'direction', 'title':'Wind Direction', 'series':["windDir"]},
         ]
         self._pens = [
             pg.mkPen(color=(255, 0, 0)),
@@ -73,16 +73,21 @@ class Graph(QtWidgets.QMainWindow):
         data_view = self._data_views[self._data_view_current]
         axis = pg.DateAxisItem()
         self.plot_graph.clear()
-        self.plot_graph.addLegend()
+        self.plot_graph.addLegend(offset=1, colCount=2)
         self.plot_graph.setLabel("left", data_view['unit'])
         self.plot_graph.setLabel("bottom", "Time")
         self.plot_graph.setAxisItems({'bottom':axis})
+        self.plot_graph.setTitle(data_view['title'])
+        if 'y_zero' in data_view:
+            if data_view['y_zero'] is True:
+                self.plot_graph.setYRange(0, 5)
+        else:
+            self.plot_graph.enableAutoRange(y=True)
         pen_counter = 0
         for dtype in data_view['series']:
             plotdata = np.array(self._data[['epochs',dtype]])
             graph = self.plot_graph.plot(plotdata, pen=self._pens[pen_counter], connect='finite', name=dtype)
             pen_counter += 1
-
 
     def mousePressEvent(self, event):
         # increment our view counter
