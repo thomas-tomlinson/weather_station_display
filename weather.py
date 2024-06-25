@@ -13,7 +13,7 @@ from panels.bar_rainfall import BarRainfall
 from panels.temp_humidity import TempHumidity
 from panels.time_info import TimeInfo
 from panels.wind_direction import WindDirection
-from panels.graph import Graph
+from panels.graph_m import Graph
 from panels.sat_image import SatImage
 import paho.mqtt.client as mqtt
 import weather_config.weather_config as wc
@@ -156,9 +156,9 @@ class MainWindow(QMainWindow):
         if event.type() == QEvent.Type.MouseButtonPress:
             self.object_clicked = obj
             self.mouse_press_time = perf_counter_ns()
-            #print("mount button press: {} object: {}".format(self.mouse_press_time, obj))
+            print("mount button press: {} object: {}".format(self.mouse_press_time, obj))
         elif event.type() == QEvent.Type.MouseButtonRelease:
-            #print("mount button release: {} object: {}".format(self.mouse_press_time, obj))
+            print("mount button release: {} object: {}".format(self.mouse_press_time, obj))
             if self.object_clicked == obj:
                 release_time = perf_counter_ns()
             else:
