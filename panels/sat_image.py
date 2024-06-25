@@ -78,24 +78,8 @@ class SatImage(QtWidgets.QMainWindow):
     def update_sat_image(self, image):
         self._sat_image.setPixmap(QPixmap(image))
 
-    def mousePressEvent(self, event):
-        self._last = "Click"
-
     def mouseReleaseEvent(self, event):
-        if self._last == "Click":
-            QtCore.QTimer.singleShot(QApplication.instance().doubleClickInterval(),
-                                     self.performSingleClickAction)
-        else:
-            pass
-            #self.message = "Double Click"
-            #self.update()
-
-    def mouseDoubleClickEvent(self, event):
-        self._last = "Double Click" 
-
-    def performSingleClickAction(self):
-        if self._last == "Click":
-            self.fetchdata.touch_screen_cycle()
+        self.fetchdata.touch_screen_cycle()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

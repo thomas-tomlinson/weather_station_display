@@ -1,5 +1,5 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal, QEvent
 from PyQt6.QtGui import QPainter, QPolygon, QFont, QFontMetrics, QPen, QColor
 from PyQt6.QtWidgets import QApplication
 import pyqtgraph as pg 
@@ -37,6 +37,18 @@ class FetchData(QtCore.QObject):
     def stop(self):
         self._isRunning = False
 
+class MyPlotWidget(pg.PlotWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    #these override the mouse hijacking that pyqtgraph does
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        super().mousePressEvent(event)
+
+
 class Graph(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(Graph, self).__init__(*args, **kwargs)
@@ -57,7 +69,9 @@ class Graph(QtWidgets.QMainWindow):
             pg.mkPen(color=(255, 0, 0)),
             pg.mkPen(color=(0, 255, 0)),
         ]
-        self.plot_graph = pg.PlotWidget()
+        #self.plot_graph = pg.PlotWidget()
+        self.plot_graph = MyPlotWidget()
+        self.plot_graph.installEventFilter(self)
         self.plot_graph.setMouseEnabled(x=False, y=False)
         self.plot_graph.setMenuEnabled(enableMenu=False, enableViewBoxMenu=False)
         self.plot_graph.setObjectName("graph")
@@ -92,10 +106,10 @@ class Graph(QtWidgets.QMainWindow):
         pen_counter = 0
         for dtype in data_view['series']:
             plotdata = np.array(self._data[['epochs',dtype]])
-            graph = self.plot_graph.plot(plotdata, pen=self._pens[pen_counter], connect='finite', name=dtype)
+            graph = self.plot_graph.plot(plotdata, pen=self._pens[pen_counter], connect='finite', name=dtype, clickable=True)
             pen_counter += 1
 
-    def mousePressEvent(self, event):
+    def mouseReleaseEvent(self, event):
         # increment our view counter
         if self._data_view_current  == len(self._data_views) - 1:
             self._data_view_current = 0
@@ -103,6 +117,7 @@ class Graph(QtWidgets.QMainWindow):
             self._data_view_current += 1 
         #self.graph.clear()
         self.draw_graph()
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

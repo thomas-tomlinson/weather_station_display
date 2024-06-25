@@ -149,10 +149,6 @@ class MainWindow(QMainWindow):
                 widget.show()
 
     def eventFilter(self, obj, event):
-        #if event.type() == QEvent.Type.MouseButtonDblClick:
-            #print("double click event: {}".format(event))
-            #self.object_dbl_clicked = obj
-            #self.widgetResize()
         if event.type() == QEvent.Type.MouseButtonPress:
             self.object_clicked = obj
             self.mouse_press_time = perf_counter_ns()
@@ -169,6 +165,7 @@ class MainWindow(QMainWindow):
             if button_held > 1000000000:
                 #long press
                 self.widgetResize()
+                return True
 
         return False
 
