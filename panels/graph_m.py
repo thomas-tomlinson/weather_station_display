@@ -10,7 +10,7 @@ import pandas as pd
 import weather_config.weather_config as wc
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-import matplotlib.dates as mdates
+import matplotlib.ticker as ticker
 
 
 
@@ -51,6 +51,7 @@ class Graph(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(Graph, self).__init__(*args, **kwargs)
         self._data = {}
+        self._main = QtWidgets.QWidget()
         self._data_view_current = 0
         self._data_views = [
             {'unit': 'degree F', 'title': 'Temp','series':["outTemp", "inTemp",]},
@@ -66,7 +67,7 @@ class Graph(QtWidgets.QMainWindow):
         self.sc = MplCanvas(self, width=5, height=4, dpi=100)
 
         self.setCentralWidget(self.sc)
-
+        self.show()
         self.thread = QtCore.QThread(self)
         self.fetchdata = FetchData()
         self.fetchdata.data.connect(self.update_graph_data)
@@ -86,6 +87,7 @@ class Graph(QtWidgets.QMainWindow):
         self._data.plot(x="dateTime", y="inTemp", kind="line", ax=self.sc.axes)
         #self.sc.axes.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
         #self.sc.axes.plot(plot_data)
+        self.sc.axes.xaxis.set_major_locator(ticker.MultipleLocator(300))
         self.sc.draw()
 
 #    def mousePressEvent(self, event):
@@ -100,5 +102,4 @@ class Graph(QtWidgets.QMainWindow):
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     example = Graph()
-    example.show()
     app.exec()
