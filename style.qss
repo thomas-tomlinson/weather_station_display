@@ -15,5 +15,5 @@ QWidget#graph {
 * {
     background-color: black;
     color: white;
-    font-family: "Bruno Ace";
+    font-family: "Noto Sans Display Condensed";
 }

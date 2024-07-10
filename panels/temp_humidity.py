@@ -115,9 +115,9 @@ class TempHumidity(QtWidgets.QWidget):
         font.setPointSize(20)
         # headers
         self._in_label.setFont(font)
-        self._in_label.setText('InSide')
+        self._in_label.setText('INSIDE')
         self._out_label.setFont(font)
-        self._out_label.setText('OutSide')
+        self._out_label.setText('OUTSIDE')
 
         #large data display
         font.setPointSize(40)

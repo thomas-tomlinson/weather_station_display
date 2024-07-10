@@ -63,11 +63,12 @@ class MainWindow(QMainWindow):
         load = QFontDatabase.addApplicationFont(dirname + '/fonts/OxygenMono-Regular.ttf')
         load = QFontDatabase.addApplicationFont(dirname + '/fonts/Audiowide-Regular.ttf')
         load = QFontDatabase.addApplicationFont(dirname + '/fonts/BrunoAce-Regular.ttf')
+        load = QFontDatabase.addApplicationFont(dirname + '/fonts/NotoSansDisplay_Condensed-Regular.ttf')
         #font = QFont('Oxygen Mono')
         with open('style.qss', 'r') as f:
             _style = f.read()
             self.setStyleSheet(_style)
-        
+
         #font.setStretch(90)
         #self.setFont(font)
         self.layout = QGridLayout()
