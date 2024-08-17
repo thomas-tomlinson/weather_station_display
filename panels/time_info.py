@@ -63,10 +63,14 @@ class TimeInfo(QtWidgets.QWidget):
         super(TimeInfo, self).__init__(*args, **kwargs)
         # init our values, place holders currently
         self._datetime = time.ctime()
+        self._last_update = 0
         self._suninfo = '0800 / 2130'
 
         layout = QtWidgets.QVBoxLayout()
 
+        self._lastupdate_label = QtWidgets.QLabel()
+        self._lastupdate_label.setObjectName('lastupdate_label')
+        layout.addWidget(self._lastupdate_label)
         self._time_label = QtWidgets.QLabel()
         self._time_label.setObjectName('time_label')
         layout.addWidget(self._time_label)
@@ -116,6 +120,9 @@ class TimeInfo(QtWidgets.QWidget):
     @QtCore.pyqtSlot(str)
     def update_clock(self, value):
         self._time_values.setText("{}".format(value))
+        #hack to show the last update
+        update_lag = int(time.time() - self._last_update)
+        self._lastupdate_label.setText("LAST UPDATE: {}s".format(update_lag))
 
     @QtCore.pyqtSlot(object)
     def update_almanac(self, value):
@@ -138,6 +145,8 @@ class TimeInfo(QtWidgets.QWidget):
         # headers
         font = self.font()
         font.setPointSize(10)
+        self._lastupdate_label.setFont(font)
+        self._lastupdate_label.setText('LAST UPDATE: -')
         self._time_label.setFont(font)
         self._time_label.setText('CURRENT TIME')
         self._suninfo_label.setFont(font)
@@ -165,6 +174,14 @@ class TimeInfo(QtWidgets.QWidget):
         self.timei.stop()
         self.thread.quit()
         self.thread.wait()
+
+    @QtCore.pyqtSlot(object)
+    def setValue(self, object):
+        # check for valid data and update as needed
+        values_to_check = ['dateTime']
+        for value in values_to_check:
+            if value in object:
+                self._last_update = int(float(object['dateTime']))
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

@@ -120,6 +120,7 @@ class MainWindow(QMainWindow):
         self.mqtt.data.connect(temp_hum.setValue)
         self.mqtt.data.connect(bar_rain.setValue)
         self.mqtt.data.connect(wind_dir.setValue)
+        self.mqtt.data.connect(time_info.setValue)
         self.mqtt.moveToThread(self.thread)
         self.thread.started.connect(self.mqtt.start_process)  
         self.thread.start()
