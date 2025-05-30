@@ -63,11 +63,12 @@ class MainWindow(QMainWindow):
         load = QFontDatabase.addApplicationFont(dirname + '/fonts/OxygenMono-Regular.ttf')
         load = QFontDatabase.addApplicationFont(dirname + '/fonts/Audiowide-Regular.ttf')
         load = QFontDatabase.addApplicationFont(dirname + '/fonts/BrunoAce-Regular.ttf')
+        load = QFontDatabase.addApplicationFont(dirname + '/fonts/NotoSansDisplay_Condensed-Regular.ttf')
         #font = QFont('Oxygen Mono')
         with open('style.qss', 'r') as f:
             _style = f.read()
             self.setStyleSheet(_style)
-        
+
         #font.setStretch(90)
         #self.setFont(font)
         self.layout = QGridLayout()
@@ -119,6 +120,7 @@ class MainWindow(QMainWindow):
         self.mqtt.data.connect(temp_hum.setValue)
         self.mqtt.data.connect(bar_rain.setValue)
         self.mqtt.data.connect(wind_dir.setValue)
+        self.mqtt.data.connect(time_info.setValue)
         self.mqtt.moveToThread(self.thread)
         self.thread.started.connect(self.mqtt.start_process)  
         self.thread.start()

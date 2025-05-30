@@ -1,5 +1,5 @@
 QLabel#in_label, QLabel#out_label, QLabel#bar_label, QLabel#rain_label, QLabel#time_label, QLabel#suninfo_label,
-QLabel#windspeed_label, QLabel#windgust_label {
+QLabel#windspeed_label, QLabel#windgust_label, QLabel#lastupdate_label {
     color: red;
     font-size: 15px;
 }
@@ -15,5 +15,5 @@ QWidget#graph {
 * {
     background-color: black;
     color: white;
-    font-family: "Bruno Ace";
+    font-family: "Noto Sans Display Condensed";
 }
