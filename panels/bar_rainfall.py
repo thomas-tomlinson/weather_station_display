@@ -1,8 +1,42 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPainter, QPolygon, QFont, QFontMetrics, QPen, QColor
 from PyQt6.QtWidgets import QApplication
-import sys
+import sys, json
+import requests
+import weather_config.weather_config as wc
+
+
+class FetchForecastData(QtCore.QObject):
+    forecastData = pyqtSignal(object)
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+        self.timer = QtCore.QTimer(self)
+        self.running = True
+        self.signal = pyqtSignal(object)
+
+    def start_process(self):
+        self.do_it()
+        self.timer.timeout.connect(self.do_it)
+        self.timer.start(28800000)
+
+    def do_it(self):
+        data = {}
+        try:
+            raw_data = requests.get(wc.cfg['noaa_forecast_endpoint'])
+            data = json.loads(raw_data.content)
+        except Exception as e:
+            print(f"failed to query forecast from noaa endpoint: {e}")
+
+        try:
+            self.forecastData.emit(data['properties'])
+        except KeyError:
+            # no data to emit
+            print("failed to find the forecast key")
+            pass
+
+    def stop(self):
+        self._isRunning = False
 
 class BarRainfall(QtWidgets.QWidget):
 
@@ -39,12 +73,21 @@ class BarRainfall(QtWidgets.QWidget):
         self._forecast_lo_value = QtWidgets.QLabel()
         forecast_box.addWidget(self._forecast_lo_value, 2, 0)
         self._forecast_text_value = QtWidgets.QLabel()
-        forecast_box.addWidget(self._forecast_text_value, 1, 1, 0, 1)
+        self._forecast_text_value.setWordWrap(True)
+        forecast_box.addWidget(self._forecast_text_value, 1, 1, -1, -1)
         layout.addLayout(forecast_box)
 
         self.setLayout(layout)
         self.init_labels()
         self.update_values()
+
+         # forecast data thread
+        self.thread = QtCore.QThread(self)
+        self.forecast = FetchForecastData()
+        self.forecast.forecastData.connect(self.update_forecast)
+        self.forecast.moveToThread(self.thread)
+        self.thread.started.connect(self.forecast.start_process)
+        self.thread.start()
 
     def init_labels(self):
         # headers
@@ -75,6 +118,24 @@ class BarRainfall(QtWidgets.QWidget):
             if value in object:
                 self._values[value] = float(object[value])
         self.update_values()
+
+    @QtCore.pyqtSlot(object)
+    def update_forecast(self, value):
+        # grab the first two entries from the properties.periods array.  it's either
+        # day / night or night / day.  That will provide the hi/low and daytime forecast.
+        first = value['periods'].pop(0)
+        second = value['periods'].pop(0)
+
+        if first['isDaytime'] == True:
+            day = first
+            night = second
+        else:
+            day = second
+            night = first
+
+        self._forecast_hi_value.setText(f"HI: {day['temperature']}")
+        self._forecast_lo_value.setText(f"LO: {night['temperature']}")
+        self._forecast_text_value.setText(f"{day['detailedForecast']}")
 
 
 if __name__ == '__main__':
