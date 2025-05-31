@@ -17,7 +17,7 @@ class _Compass(QtWidgets.QWidget):
         self._padding = 4.0
         self._pointText = {0: "N", 45: "NE", 90: "E", 135: "SE", 180: "S",
             225: "SW", 270: "W", 315: "NW"}
-        #initialize the value 
+        #initialize the value
         self._values = {}
         self._values['windDir'] = 0
 
@@ -45,7 +45,7 @@ class _Compass(QtWidgets.QWidget):
         painter.save()
         i = 0
         while i < 360:
-        
+
             if i % 45 == 0:
                 painter.drawLine(0, -92, 0,-100)
                 text_center_offset = int(metrics.horizontalAdvance(self._pointText[i])/2.0)
@@ -53,7 +53,7 @@ class _Compass(QtWidgets.QWidget):
             else:
                 painter.drawLine(0, -95, 0, -100)
             painter.rotate(15)
-            i += 15 
+            i += 15
         painter.restore()
 
         # wind direction
@@ -109,21 +109,23 @@ class WindDirection(QtWidgets.QWidget):
         self._windspeed_label = QtWidgets.QLabel()
         self._windspeed_label.setText("A:")
         self._windspeed_label.setObjectName("windspeed_label")
+        self._windspeed_label.setProperty('type', 'heading')
         header_layout.addWidget(self._windspeed_label)
         self._windspeed_value = QtWidgets.QLabel()
         header_layout.addWidget(self._windspeed_value)
         self._windgust_label = QtWidgets.QLabel()
         self._windgust_label.setText("G:")
         self._windgust_label.setObjectName("windgust_label")
+        self._windgust_label.setProperty('type', 'heading')
         header_layout.addWidget(self._windgust_label)
         self._windgust_value = QtWidgets.QLabel()
         header_layout.addWidget(self._windgust_value)
 
         layout.addLayout(header_layout)
         layout.addWidget(self._compass)
-        self.update_label() 
+        self.update_label()
         self.setLayout(layout)
-        
+
 
     @QtCore.pyqtSlot(object)
     def setValue(self, object):

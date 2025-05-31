@@ -15,21 +15,37 @@ class BarRainfall(QtWidgets.QWidget):
 
         layout = QtWidgets.QVBoxLayout()
 
+        bar_hum_box = QtWidgets.QGridLayout()
         self._bar_label = QtWidgets.QLabel()
         self._bar_label.setObjectName('bar_label')
-        layout.addWidget(self._bar_label)
-        self._bar_values = QtWidgets.QLabel()
-        layout.addWidget(self._bar_values)
+        self._bar_label.setProperty('type', 'heading')
+        bar_hum_box.addWidget(self._bar_label, 0, 0)
         self._rain_label = QtWidgets.QLabel()
         self._rain_label.setObjectName('rain_label')
-        layout.addWidget(self._rain_label)
+        self._rain_label.setProperty('type', 'heading')
+        bar_hum_box.addWidget(self._rain_label, 0, 1)
+        self._bar_values = QtWidgets.QLabel()
+        bar_hum_box.addWidget(self._bar_values, 1, 0)
         self._rain_values = QtWidgets.QLabel()
-        layout.addWidget(self._rain_values)
+        bar_hum_box.addWidget(self._rain_values, 1, 1)
+        layout.addLayout(bar_hum_box)
 
-        self.setLayout(layout) 
+        forecast_box = QtWidgets.QGridLayout()
+        self._forecast_label = QtWidgets.QLabel()
+        self._forecast_label.setProperty('type', 'heading')
+        forecast_box.addWidget(self._forecast_label, 0, 0, 1, 0, alignment=Qt.AlignmentFlag.AlignCenter)
+        self._forecast_hi_value = QtWidgets.QLabel()
+        forecast_box.addWidget(self._forecast_hi_value, 1, 0)
+        self._forecast_lo_value = QtWidgets.QLabel()
+        forecast_box.addWidget(self._forecast_lo_value, 2, 0)
+        self._forecast_text_value = QtWidgets.QLabel()
+        forecast_box.addWidget(self._forecast_text_value, 1, 1, 0, 1)
+        layout.addLayout(forecast_box)
+
+        self.setLayout(layout)
         self.init_labels()
         self.update_values()
-    
+
     def init_labels(self):
         # headers
         font = self.font()
@@ -38,6 +54,9 @@ class BarRainfall(QtWidgets.QWidget):
         self._bar_label.setText('BAROMETER')
         self._rain_label.setFont(font)
         self._rain_label.setText('RAINFALL')
+
+        self._forecast_label.setFont(font)
+        self._forecast_label.setText('FORECAST')
 
         #large data display
         font.setPointSize(40)

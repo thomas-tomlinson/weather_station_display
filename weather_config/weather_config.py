@@ -22,11 +22,8 @@ def load_config():
     except Exception as e:
         return
 
-
 config_file = load_config()
 if config_file is not None:
     cfg = config_file
 else:
     cfg = default_config()
-
-

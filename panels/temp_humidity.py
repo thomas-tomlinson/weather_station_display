@@ -41,7 +41,7 @@ class CustomLabel(QtWidgets.QLabel):
             #elif textWidth > width:
             #    self._changeFontSize('smaller', font)
             else:
-                break 
+                break
             #print("textWidth: {}, width: {}".format(textWidth, width))
         self._font = font
 
@@ -81,35 +81,46 @@ class TempHumidity(QtWidgets.QWidget):
         self._values = {}
         self._values['inTemp_F'] = 99.9
         self._values['outTemp_F'] = 99.9
-        self._values['inHumidity'] = 0.0
-        self._values['outHumidity'] = 0.0
+        self._values['inHumidity'] = 99.9
+        self._values['outHumidity'] = 99.9
 
         #layout = QtWidgets.QVBoxLayout()
         layout = QtWidgets.QGridLayout()
         #layout.setHorizontalSpacing(0)
         #layout.setColumnStretch(0, 1)
-        layout.setColumnStretch(1, 1)
+        #layout.setColumnStretch(1, 1)
+        #layout.setColumnStretch(1, 0)
+        layout.setRowStretch(1, 1)
+        layout.setRowStretch(2, 1)
 
        #layout.setVerticalSpacing(0)
         self._in_label = QtWidgets.QLabel()
         self._in_label.setObjectName("in_label")
+        self._in_label.setProperty('type', 'heading')
         layout.addWidget(self._in_label, 0, 0)
         #self._in_values = QtWidgets.QLabel()
-        self._in_values = CustomLabel()
-        self._in_values.setObjectName("in_values")
-        layout.addWidget(self._in_values, 0, 1)
+        self._in_temp_values = CustomLabel()
+        self._in_temp_values.setObjectName("in_temp_values")
+        layout.addWidget(self._in_temp_values, 1, 0)
+        self._in_hum_values = CustomLabel()
+        self._in_hum_values.setObjectName("in_hum_values")
+        layout.addWidget(self._in_hum_values, 2, 0)
         self._out_label = QtWidgets.QLabel()
         self._out_label.setObjectName("out_label")
-        layout.addWidget(self._out_label, 1, 0)
+        self._out_label.setProperty('type', 'heading')
+        layout.addWidget(self._out_label, 0, 1)
         #self._out_values = QtWidgets.QLabel()
-        self._out_values = CustomLabel()
-        self._out_values.setObjectName("out_values")
-        layout.addWidget(self._out_values, 1, 1)
+        self._out_temp_values = CustomLabel()
+        self._out_temp_values.setObjectName("out_temp_values")
+        layout.addWidget(self._out_temp_values, 1, 1)
+        self._out_hum_values = CustomLabel()
+        self._out_hum_values.setObjectName("out_hum_values")
+        layout.addWidget(self._out_hum_values, 2, 1)
 
-        self.setLayout(layout) 
+        self.setLayout(layout)
         self.init_labels()
         self.update_values()
-    
+
     def init_labels(self):
         font = self.font()
         font.setPointSize(20)
@@ -121,17 +132,21 @@ class TempHumidity(QtWidgets.QWidget):
 
         #large data display
         font.setPointSize(40)
-        self._in_values.setFont(font)
-        self._out_values.setFont(font)
+        self._in_temp_values.setFont(font)
+        self._in_hum_values.setFont(font)
+        self._out_temp_values.setFont(font)
+        self._out_hum_values.setFont(font)
 
     def update_values(self):
-        self._in_values.setText("{:3.1f}F {:2.1f}%".format(self._values['inTemp_F'], self._values['inHumidity']))
-        self._out_values.setText("{:3.1f}F {:2.1f}%".format(self._values['outTemp_F'], self._values['outHumidity']))
+        self._in_temp_values.setText("{:3.1f}F".format(self._values['inTemp_F']))
+        self._in_hum_values.setText("{:2.1f}%".format(self._values['inHumidity']))
+        self._out_temp_values.setText("{:3.1f}F".format(self._values['outTemp_F']))
+        self._out_hum_values.setText("{:2.1f}%".format(self._values['outHumidity']))
 
     @QtCore.pyqtSlot(object)
     def setValue(self, object):
         # check for valid data and update as needed
-        values_to_check = ['inTemp_F', 'outTemp_F', 'inHumidity', 'outHumidity'] 
+        values_to_check = ['inTemp_F', 'outTemp_F', 'inHumidity', 'outHumidity']
         for value in values_to_check:
             if value in object:
                 self._values[value] = float(object[value])
