@@ -6,13 +6,14 @@ def default_config():
     def_cfg = {}
     def_cfg['weewx_host'] = 'weewx.local'
     def_cfg['sat_images'] = ['https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/300x300.jpg']
+    def_cfg['noaa_forecast_endpoint'] = 'https://api.weather.gov/gridpoints/BOI/133,86/forecast'
     return def_cfg
 
 def load_config():
     json_config = {}
     try:
         f = open('weather_cfg.json')
-        
+
     except FileNotFoundError as e:
         return
 
