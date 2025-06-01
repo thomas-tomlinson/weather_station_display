@@ -138,7 +138,7 @@ class TempHumidity(QtWidgets.QWidget):
         self._out_hum_values.setFont(font)
 
     def update_values(self):
-        self._in_temp_values.setText("{:3.1f}F".format(self._values['inTemp_F']))
+        self._in_temp_values.setText('{:3.1f}F'.format(self._values['inTemp_F']))
         self._in_hum_values.setText("{:2.1f}%".format(self._values['inHumidity']))
         self._out_temp_values.setText("{:3.1f}F".format(self._values['outTemp_F']))
         self._out_hum_values.setText("{:2.1f}%".format(self._values['outHumidity']))

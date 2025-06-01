@@ -9,6 +9,7 @@ import weather_config.weather_config as wc
 
 class FetchForecastData(QtCore.QObject):
     forecastData = pyqtSignal(object)
+
     def __init__(self):
         QtCore.QThread.__init__(self)
         self.timer = QtCore.QTimer(self)
@@ -16,12 +17,13 @@ class FetchForecastData(QtCore.QObject):
         self.signal = pyqtSignal(object)
 
     def start_process(self):
-        self.do_it()
-        self.timer.timeout.connect(self.do_it)
-        self.timer.start(28800000)
+        self.fetch_forecast_data()
+        self.timer.timeout.connect(self.fetch_forecast_data)
+        self.timer.start(10800000)
 
-    def do_it(self):
+    def fetch_forecast_data(self):
         data = {}
+        print(f"fetching forecast data from: {wc.cfg['noaa_forecast_endpoint']}")
         try:
             raw_data = requests.get(wc.cfg['noaa_forecast_endpoint'])
             data = json.loads(raw_data.content)
@@ -71,10 +73,12 @@ class BarRainfall(QtWidgets.QWidget):
         self._forecast_hi_value = QtWidgets.QLabel()
         forecast_box.addWidget(self._forecast_hi_value, 1, 0)
         self._forecast_lo_value = QtWidgets.QLabel()
-        forecast_box.addWidget(self._forecast_lo_value, 2, 0)
+        forecast_box.addWidget(self._forecast_lo_value, 1, 1)
         self._forecast_text_value = QtWidgets.QLabel()
         self._forecast_text_value.setWordWrap(True)
-        forecast_box.addWidget(self._forecast_text_value, 1, 1, -1, -1)
+        self._forecast_text_value.setProperty('type', 'forecast')
+
+        forecast_box.addWidget(self._forecast_text_value, 2, 0, -1, -1)
         layout.addLayout(forecast_box)
 
         self.setLayout(layout)
@@ -102,7 +106,7 @@ class BarRainfall(QtWidgets.QWidget):
         self._forecast_label.setText('FORECAST')
 
         #large data display
-        font.setPointSize(40)
+        font.setPointSize(20)
         self._bar_values.setFont(font)
         self._rain_values.setFont(font)
 
@@ -136,7 +140,6 @@ class BarRainfall(QtWidgets.QWidget):
         self._forecast_hi_value.setText(f"HI: {day['temperature']}")
         self._forecast_lo_value.setText(f"LO: {night['temperature']}")
         self._forecast_text_value.setText(f"{day['detailedForecast']}")
-
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
