@@ -8,11 +8,11 @@ QLabel[type="forecast"] {
 }
 
 QLabel[type="large_temp"] {
-    font-size: 65px;
+    font-size: 45px;
 }
 
 QLabel[type="large_humidity"] {
-    font-size: 45px;
+    font-size: 35px;
 }
 
 QLabel {
