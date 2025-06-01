@@ -7,6 +7,14 @@ QLabel[type="forecast"] {
     font-size: 15px;
 }
 
+QLabel[type="large_temp"] {
+    font-size: 65px;
+}
+
+QLabel[type="large_humidity"] {
+    font-size: 45px;
+}
+
 QLabel {
     font-size: 20px;
 }
