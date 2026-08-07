@@ -70,11 +70,12 @@ class FetchAirNowData(QtCore.QObject):
         }
 
         try:
-            raw_data = requests.get(f'{wc.cfg['airnow_api_endpoint']}/aq/observation/current/racode/', params=payload)
+            raw_data = requests.get('{}/aq/observation/current/racode/'.format(wc.cfg['airnow_api_endpoint']), params=payload)
             data = json.loads(raw_data.content)
         except Exception as e:
             print(f"failed to query AirNow data, error: {e}")
             return
+
         # loop through the raw_data and find the highest AQI.
         for s in data:
             if s['nowcastAQI'] > aqi:
