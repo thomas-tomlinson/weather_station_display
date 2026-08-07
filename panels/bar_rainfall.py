@@ -40,6 +40,51 @@ class FetchForecastData(QtCore.QObject):
     def stop(self):
         self._isRunning = False
 
+class FetchAirNowData(QtCore.QObject):
+    airnowData = pyqtSignal(int)
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+        self.timer = QtCore.QTimer(self)
+        self.running = True
+        self.signal = pyqtSignal(object)
+
+    def start_process(self):
+        self.do_it()
+        self.timer.timeout.connect(self.do_it)
+        self.timer.start(3600000)
+
+    def do_it(self):
+        aqi = 0
+        # verify that the required params exist
+        if wc.cfg['airnow_api_endpoint'] and wc.cfg['airnow_api_key']:
+            pass
+        else:
+            print("AirNow api endpoint or key not defined in config")
+            self.airnowData.emit(aqi)
+            return
+
+        payload = {
+            'API_KEY': wc.cfg['airnow_api_key'],
+            'format': 'application/json',
+            'reportingAreaCode': 'id001'
+        }
+
+        try:
+            raw_data = requests.get(f'{wc.cfg['airnow_api_endpoint']}/aq/observation/current/racode/', params=payload)
+            data = json.loads(raw_data.content)
+        except Exception as e:
+            print(f"failed to query AirNow data, error: {e}")
+
+        # loop through the raw_data and find the highest AQI.
+        for s in data:
+            if s['nowcastAQI'] > aqi:
+                aqi = int(s['nowcastAQI'])
+
+        self.airnowData.emit(aqi)
+
+    def stop(self):
+        self._isRunning = False
+
 class BarRainfall(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
@@ -48,22 +93,28 @@ class BarRainfall(QtWidgets.QWidget):
         self._values = {}
         self._values['barometer_inHg'] = 0.0
         self._values['rain24_in'] = 0.0
+        self._values['aqi'] = 0
 
         layout = QtWidgets.QVBoxLayout()
 
-        bar_hum_box = QtWidgets.QGridLayout()
-        self._bar_label = QtWidgets.QLabel()
-        self._bar_label.setObjectName('bar_label')
-        self._bar_label.setProperty('type', 'heading')
-        bar_hum_box.addWidget(self._bar_label, 0, 0)
-        self._rain_label = QtWidgets.QLabel()
-        self._rain_label.setObjectName('rain_label')
-        self._rain_label.setProperty('type', 'heading')
-        bar_hum_box.addWidget(self._rain_label, 0, 1)
+        #bar_hum_box = QtWidgets.QGridLayout()
+        bar_hum_box = QtWidgets.QVBoxLayout()
+        #self._bar_label = QtWidgets.QLabel()
+        #self._bar_label.setObjectName('bar_label')
+        #self._bar_label.setProperty('type', 'heading')
+        #bar_hum_box.addWidget(self._bar_label, 0, 0)
+        #self._rain_label = QtWidgets.QLabel()
+        #self._rain_label.setObjectName('rain_label')
+        #self._rain_label.setProperty('type', 'heading')
+        #bar_hum_box.addWidget(self._rain_label, 0, 1)
         self._bar_values = QtWidgets.QLabel()
-        bar_hum_box.addWidget(self._bar_values, 1, 0)
+        #bar_hum_box.addWidget(self._bar_values, 1, 0)
+        bar_hum_box.addWidget(self._bar_values)
         self._rain_values = QtWidgets.QLabel()
-        bar_hum_box.addWidget(self._rain_values, 1, 1)
+        #bar_hum_box.addWidget(self._rain_values, 1, 1)
+        bar_hum_box.addWidget(self._rain_values)
+        self._aqi_values = QtWidgets.QLabel()
+        bar_hum_box.addWidget(self._aqi_values)
         layout.addLayout(bar_hum_box)
 
         forecast_box = QtWidgets.QGridLayout()
@@ -93,14 +144,22 @@ class BarRainfall(QtWidgets.QWidget):
         self.thread.started.connect(self.forecast.start_process)
         self.thread.start()
 
+        # airnow aqi thread
+        self.thread2 = QtCore.QThread(self)
+        self.airnow = FetchAirNowData()
+        self.airnow.airnowData.connect(self.update_airnow)
+        self.airnow.moveToThread(self.thread2)
+        self.thread2.started.connect(self.airnow.start_process)
+        self.thread2.start()
+
     def init_labels(self):
         # headers
         font = self.font()
         font.setPointSize(10)
-        self._bar_label.setFont(font)
-        self._bar_label.setText('BAROMETER')
-        self._rain_label.setFont(font)
-        self._rain_label.setText('RAINFALL')
+        #self._bar_label.setFont(font)
+        #self._bar_label.setText('BAROMETER')
+        #self._rain_label.setFont(font)
+        #self._rain_label.setText('RAINFALL')
 
         self._forecast_label.setFont(font)
         self._forecast_label.setText('FORECAST')
@@ -111,8 +170,9 @@ class BarRainfall(QtWidgets.QWidget):
         self._rain_values.setFont(font)
 
     def update_values(self):
-        self._bar_values.setText("{:3.2f} inHg ".format(self._values['barometer_inHg']))
-        self._rain_values.setText("{:2.2f} in".format(self._values['rain24_in']))
+        #self._lastupdate_label.setText(f"LAST UPDATE: <font color='{lag_state}'>{update_lag}s</font>")
+        self._bar_values.setText("<font color='red'>BAR:</font> {:3.2f} inHg ".format(self._values['barometer_inHg']))
+        self._rain_values.setText("<font color='red'>RAINFALL: </font>{:2.2f} in".format(self._values['rain24_in']))
 
     @QtCore.pyqtSlot(object)
     def setValue(self, object):
@@ -140,6 +200,11 @@ class BarRainfall(QtWidgets.QWidget):
         self._forecast_hi_value.setText(f"HI: {day['temperature']}")
         self._forecast_lo_value.setText(f"LO: {night['temperature']}")
         self._forecast_text_value.setText(f"{day['detailedForecast']}")
+
+    @QtCore.pyqtSlot(int)
+    def update_airnow(self, value):
+        self._aqi_values.setText("<font color='red'>AQI: </font>{:3.0f}".format(value))
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
