@@ -22,17 +22,17 @@ class FetchAlmanacData(QtCore.QObject):
         data = {}
         try:
             raw_data = requests.get(wc.cfg['weewx_almanac_data'])
-            data = json.loads(raw_data.content)        
+            data = json.loads(raw_data.content)
         except Exception as e:
-            print("failed to query weewx_data.json from weewx host")
+            print(f"failed to query weewx_data.json from weewx host: {e}")
 
-        try: 
+        try:
             self.almanacData.emit(data['almanac'])
         except KeyError:
             # no data to emit
             print("failed to find the almanac key")
             pass
-        
+
     def stop(self):
         self._isRunning = False
 
@@ -53,7 +53,7 @@ class TimeProcess(QtCore.QObject):
     def do_it(self):
         time_string = time.strftime('%a %b %d %Y\n%H:%M:%S')
         self.timedate.emit(time_string)
-        
+
     def stop(self):
         self._isRunning = False
 
@@ -64,21 +64,34 @@ class TimeInfo(QtWidgets.QWidget):
         # init our values, place holders currently
         self._datetime = time.ctime()
         self._last_update = 0
+        self._supply_voltage = 0.0
         self._suninfo = '0800 / 2130'
 
+        # parent layout for this panel
         layout = QtWidgets.QVBoxLayout()
 
+        last_update_volt = QtWidgets.QHBoxLayout()
         self._lastupdate_label = QtWidgets.QLabel()
         self._lastupdate_label.setObjectName('lastupdate_label')
-        layout.addWidget(self._lastupdate_label)
+        self._lastupdate_label.setProperty('type', 'heading')
+        last_update_volt.addWidget(self._lastupdate_label)
+        self._voltage_label = QtWidgets.QLabel()
+        self._voltage_label.setObjectName('voltage_label')
+        self._voltage_label.setProperty('type', 'heading')
+        last_update_volt.addWidget(self._voltage_label)
+        layout.addLayout(last_update_volt)
+
         self._time_label = QtWidgets.QLabel()
         self._time_label.setObjectName('time_label')
+        self._time_label.setProperty('type', 'heading')
         layout.addWidget(self._time_label)
         self._time_values = QtWidgets.QLabel()
         self._time_values.setWordWrap(True)
         layout.addWidget(self._time_values)
+
         self._suninfo_label = QtWidgets.QLabel()
         self._suninfo_label.setObjectName('suninfo_label')
+        self._suninfo_label.setProperty('type', 'heading')
         layout.addWidget(self._suninfo_label)
 
         hbox = QtWidgets.QHBoxLayout()
@@ -98,7 +111,7 @@ class TimeInfo(QtWidgets.QWidget):
         hbox.addWidget(self._moon_value)
 
         layout.addLayout(hbox)
-        self.setLayout(layout) 
+        self.setLayout(layout)
         self.init_labels()
 
         # clock thread
@@ -106,7 +119,7 @@ class TimeInfo(QtWidgets.QWidget):
         self.timei = TimeProcess()
         self.timei.timedate.connect(self.update_clock)
         self.timei.moveToThread(self.thread)
-        self.thread.started.connect(self.timei.start_process)  
+        self.thread.started.connect(self.timei.start_process)
         self.thread.start()
 
         # almanac data thread
@@ -114,7 +127,7 @@ class TimeInfo(QtWidgets.QWidget):
         self.almanac = FetchAlmanacData()
         self.almanac.almanacData.connect(self.update_almanac)
         self.almanac.moveToThread(self.thread)
-        self.thread.started.connect(self.almanac.start_process)  
+        self.thread.started.connect(self.almanac.start_process)
         self.thread.start()
 
     @QtCore.pyqtSlot(str)
@@ -122,7 +135,23 @@ class TimeInfo(QtWidgets.QWidget):
         self._time_values.setText("{}".format(value))
         #hack to show the last update
         update_lag = int(time.time() - self._last_update)
-        self._lastupdate_label.setText("LAST UPDATE: {}s".format(update_lag))
+        if update_lag > 1000:
+            lag_state = 'red'
+        elif update_lag > 200:
+            lag_state = 'orange'
+        else:
+            lag_state = 'white'
+
+        if self._supply_voltage > 3.7:
+            volt_state = 'white'
+        elif self._supply_voltage > 3.4:
+            volt_state = 'orange'
+        else:
+            volt_state = 'red'
+
+
+        self._lastupdate_label.setText(f"LAST UPDATE: <font color='{lag_state}'>{update_lag}s</font>")
+        self._voltage_label.setText(f"BATTERY: <font color='{volt_state}'>{self._supply_voltage}</font>V")
 
     @QtCore.pyqtSlot(object)
     def update_almanac(self, value):
@@ -154,7 +183,7 @@ class TimeInfo(QtWidgets.QWidget):
         # time small
         font.setPointSize(20)
         self._time_values.setFont(font)
-        
+
         #large data display
         #font.setPointSize(50)
         #self._suninfo_values.setFont(font)
@@ -178,10 +207,13 @@ class TimeInfo(QtWidgets.QWidget):
     @QtCore.pyqtSlot(object)
     def setValue(self, object):
         # check for valid data and update as needed
-        values_to_check = ['dateTime']
+        values_to_check = ['dateTime','supplyVoltage_volt']
         for value in values_to_check:
             if value in object:
-                self._last_update = int(float(object['dateTime']))
+                if value == 'dateTime':
+                    self._last_update = int(float(object['dateTime']))
+                elif value == 'supplyVoltage_volt':
+                    self._supply_voltage = float(object['supplyVoltage_volt'])
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
