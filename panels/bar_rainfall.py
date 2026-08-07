@@ -74,7 +74,7 @@ class FetchAirNowData(QtCore.QObject):
             data = json.loads(raw_data.content)
         except Exception as e:
             print(f"failed to query AirNow data, error: {e}")
-
+            return
         # loop through the raw_data and find the highest AQI.
         for s in data:
             if s['nowcastAQI'] > aqi:
